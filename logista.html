@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel do Logista — Garagem Yale</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c8a96e;
+    --gold-light: #e2c99a;
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1f1f1f;
+    --surface3: #252525;
+    --border: rgba(200,169,110,0.15);
+    --text: #f0ece4;
+    --muted: #6b6560;
+    --radius: 12px;
+    --red: #e05c5c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(200,169,110,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,169,110,0.03) 1px, transparent 1px);
+    background-size: 48px 48px; pointer-events: none;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 48px 20px 0; }
+
+  /* Header */
+  .header { margin-bottom: 40px; display: flex; align-items: center; gap: 24px; border-bottom: 1px solid var(--border); padding-bottom: 28px; }
+  .header-left { flex: 1; }
+  .brand { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.7; }
+  .header-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 4vw, 44px); font-weight: 700; line-height: 1; letter-spacing: -0.02em; margin-top: 4px; }
+  .header-title span { color: var(--gold); }
+  .header-sub { font-size: 13px; color: var(--muted); font-weight: 300; margin-top: 6px; }
+
+  .btn-logout { display: flex; align-items: center; gap: 7px; padding: 9px 16px; background: transparent; border: 1px solid var(--border); border-radius: 9px; color: var(--muted); font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: border-color 0.2s, color 0.2s; white-space: nowrap; }
+  .btn-logout:hover { border-color: rgba(224,92,92,0.5); color: var(--red); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; }
+  .tab { flex: 1; padding: 11px 16px; border-radius: 9px; border: none; background: transparent; color: var(--muted); font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .tab.active { background: var(--surface2); color: var(--gold); }
+  .tab-badge { background: var(--gold); color: #0d0d0d; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 99px; min-width: 18px; text-align: center; }
+
+  /* Card */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 36px; position: relative; overflow: hidden; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 4px; }
+  .grid-full { grid-column: span 2; }
+
+  .field { position: relative; }
+  .field label { display: block; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; transition: color 0.2s; }
+  .field:focus-within label { color: var(--gold); }
+
+  .field input, .field select {
+    width: 100%; padding: 13px 16px;
+    background: var(--surface2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius);
+    color: var(--text); font-family: 'Outfit', sans-serif; font-size: 14px; outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .field input::placeholder { color: var(--muted); }
+  .field input:focus, .field select:focus { border-color: var(--gold); background: #222; }
+  .field select option { background: #1a1a1a; }
+
+  /* Suggestions */
+  .suggestions { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #1a1a1a; border: 1px solid var(--border); border-radius: var(--radius); max-height: 200px; overflow-y: auto; display: none; z-index: 50; box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+  .suggestions div { padding: 10px 16px; font-size: 13px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: center; gap: 10px; transition: background 0.15s, color 0.15s; }
+  .suggestions div::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background 0.15s; }
+  .suggestions div:last-child { border-bottom: none; }
+  .suggestions div:hover, .suggestions div.active { background: rgba(200,169,110,0.08); color: var(--gold); }
+  .suggestions div:hover::before, .suggestions div.active::before { background: var(--gold); }
+
+  /* Color picker */
+  .color-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .color-chip {
+    width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+    border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s;
+    position: relative;
+  }
+  .color-chip:hover { transform: scale(1.15); }
+  .color-chip.selected { border-color: var(--gold); }
+  .color-chip.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: rgba(255,255,255,0.9); text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+
+  /* Divider */
+  .divider { margin: 24px 0; border: none; border-top: 1px solid var(--border); }
+
+  /* Drop zone */
+  .drop-zone { border: 1.5px dashed rgba(200,169,110,0.3); border-radius: var(--radius); background: var(--surface2); padding: 28px 20px; cursor: pointer; transition: border-color 0.2s, background 0.2s; text-align: center; position: relative; min-height: 120px; display: flex; align-items: center; justify-content: center; }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--gold); background: rgba(200,169,110,0.05); }
+  .drop-icon { width: 48px; height: 48px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--gold); transition: background 0.2s; }
+  .drop-zone:hover .drop-icon { background: rgba(200,169,110,0.08); }
+  .drop-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+  .drop-sub { font-size: 12px; color: var(--muted); font-weight: 300; }
+  .drop-link { color: var(--gold); text-decoration: underline; text-underline-offset: 2px; }
+  .preview-img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px; }
+  .preview-clear { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; z-index: 2; transition: background 0.2s; }
+  .preview-clear:hover { background: rgba(200,0,0,0.5); }
+
+  /* Buttons */
+  .btn { width: 100%; padding: 15px 24px; background: var(--gold); color: #0d0d0d; border: none; border-radius: var(--radius); font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, transform 0.15s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 22px; }
+  .btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn.btn-secondary { background: transparent; color: var(--gold); border: 1px solid var(--gold); margin-top: 10px; }
+  .btn.btn-secondary:hover { background: rgba(200,169,110,0.08); }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 32px; right: 32px; background: var(--surface); border: 1px solid var(--gold); border-radius: var(--radius); padding: 15px 22px; font-size: 13px; color: var(--gold); display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateY(12px); transition: opacity 0.3s, transform 0.3s; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── Estoque list ── */
+  .estoque-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+  .estoque-search { flex: 1; min-width: 180px; position: relative; }
+  .estoque-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  .estoque-search input { width: 100%; padding: 11px 14px 11px 38px; background: var(--surface2); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s; }
+  .estoque-search input:focus { border-color: var(--gold); }
+  .estoque-search input::placeholder { color: var(--muted); }
+  .estoque-count { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .estoque-count strong { color: var(--gold); }
+
+  .car-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .car-row {
+    background: var(--surface2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 14px;
+    transition: border-color 0.2s;
+  }
+  .car-row:hover { border-color: var(--border); }
+
+  .car-thumb { width: 64px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--surface3); flex-shrink: 0; }
+  .car-thumb-ph { width: 64px; height: 48px; border-radius: 8px; background: var(--surface3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  .car-info { flex: 1; min-width: 0; }
+  .car-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .car-meta { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .car-price-tag { font-size: 14px; font-weight: 600; color: var(--gold); flex-shrink: 0; white-space: nowrap; }
+
+  .car-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  .icon-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--muted); transition: border-color 0.2s, color 0.2s, background 0.2s; }
+  .icon-btn:hover.edit { border-color: var(--gold); color: var(--gold); background: rgba(200,169,110,0.08); }
+  .icon-btn:hover.del { border-color: var(--red); color: var(--red); background: rgba(224,92,92,0.08); }
+
+  .empty-estoque { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.25s; backdrop-filter: blur(4px); }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 32px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; position: relative; transform: translateY(16px); transition: transform 0.25s; }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); border-radius: 18px 18px 0 0; }
+  .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 700; margin-bottom: 24px; }
+  .modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--muted); transition: color 0.2s, border-color 0.2s; }
+  .modal-close:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  /* Confirm dialog */
+  .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 600; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; backdrop-filter: blur(4px); }
+  .confirm-overlay.open { opacity: 1; pointer-events: all; }
+  .confirm-box { background: var(--surface); border: 1px solid rgba(224,92,92,0.3); border-radius: 16px; padding: 32px; max-width: 380px; width: 100%; text-align: center; transform: scale(0.95); transition: transform 0.2s; }
+  .confirm-overlay.open .confirm-box { transform: scale(1); }
+  .confirm-icon { font-size: 36px; margin-bottom: 16px; }
+  .confirm-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .confirm-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+  .confirm-btns { display: flex; gap: 10px; }
+  .confirm-cancel { flex: 1; padding: 12px; background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--muted); font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+  .confirm-cancel:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+  .confirm-delete { flex: 1; padding: 12px; background: var(--red); border: none; border-radius: 10px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .confirm-delete:hover { opacity: 0.85; }
+
+  /* Footer */
+  .site-footer { max-width: 900px; margin: 48px auto 0; padding: 28px 20px 48px; border-top: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+  .footer-shop-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border: 1px solid var(--border); border-radius: 10px; color: var(--gold); text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 0.06em; transition: border-color 0.2s, background 0.2s; }
+  .footer-shop-btn:hover { border-color: var(--gold); background: rgba(200,169,110,0.06); }
+  .footer-credit { font-size: 12px; color: var(--muted); font-weight: 300; }
+  .footer-credit a { color: var(--gold); text-decoration: none; }
+  .footer-credit a:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .grid-full { grid-column: span 1; }
+    .card { padding: 24px; }
+    .page { padding: 28px 16px 0; }
+    .car-price-tag { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<script>
+  if (sessionStorage.getItem("logistAutenticado") !== "true") {
+    window.location.href = "login.html";
+  }
+  function logout() {
+    sessionStorage.removeItem("logistAutenticado");
+    window.location.href = "login.html";
+  }
+</script>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="brand">Garagem Yale</div>
+      <h1 class="header-title">Painel do <span>Logista</span></h1>
+      <p class="header-sub">Gerenciar estoque de veículos</p>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sair
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" id="tabCadastrar" onclick="setTab('cadastrar')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Cadastrar veículo
+    </button>
+    <button class="tab" id="tabEstoque" onclick="setTab('estoque')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7l-2-4H10L8 7"/></svg>
+      Estoque
+      <span class="tab-badge" id="tabBadge">0</span>
+    </button>
+  </div>
+
+  <!-- ── TAB: CADASTRAR ── -->
+  <div id="panelCadastrar">
+    <div class="card">
+
+      <div class="section-label">Identificação</div>
+      <div class="grid">
+        <div class="field">
+          <label for="marca">Marca</label>
+          <input id="marca" placeholder="Ex: Toyota" autocomplete="off" oninput="sugerirMarca()">
+          <div class="suggestions" id="sugMarca"></div>
+        </div>
+        <div class="field">
+          <label for="modelo">Modelo</label>
+          <input id="modelo" placeholder="Ex: Corolla" autocomplete="off" oninput="sugerirModelo()">
+          <div class="suggestions" id="sugModelo"></div>
+        </div>
+        <div class="field">
+          <label for="ano">Ano</label>
+          <input id="ano" placeholder="Ex: 2023" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
+        </div>
+        <div class="field">
+          <label for="combustivel">Combustível</label>
+          <select id="combustivel">
+            <option value="Flex">Flex</option>
+            <option value="Gasolina">Gasolina</option>
+            <option value="Etanol">Etanol</option>
+            <option value="Diesel">Diesel</option>
+            <option value="Elétrico">Elétrico</option>
+            <option value="Híbrido">Híbrido</option>
+            <option value="GNV">GNV</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cambio">Câmbio</label>
+          <select id="cambio">
+            <option value="Automático">Automático</option>
+            <option value="Manual">Manual</option>
+            <option value="CVT">CVT</option>
+            <option value="Automatizado">Automatizado</option>
+            <option value="Dual-clutch">Dual-clutch (DCT)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="portas">Portas</label>
+          <select id="portas">
+            <option value="">—</option>
+            <option value="2 portas">2 portas</option>
+            <option value="4 portas">4 portas</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="section-label">Cor</div>
+      <div class="color-grid" id="colorGrid"></div>
+      <div class="field" style="margin-top:12px">
+        <label for="cor">Cor personalizada</label>
+        <input id="cor" placeholder="Ex: Azul Metálico" oninput="deselectColor()">
+      </div>
+
+      <hr class="divider">
+      <div class="section-label">Preço &amp; KM</div>
+      <div class="grid">
+        <div class="field">
+          <label for="preco">Preço</label>
+          <input id="preco" placeholder="R$ 0,00" oninput="mascaraPreco(this)">
+        </div>
+        <div class="field">
+          <label for="km">Quilometragem</label>
+          <input id="km" placeholder="0 km" oninput="mascaraKm(this)">
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="section-label">Mídia</div>
+
+      <div class="drop-zone" id="dropZone"
+           onclick="document.getElementById('fileInput').click()"
+           ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="onFileSelect(event)">
+        <div id="dropIdle">
+          <div class="drop-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="drop-title">Arraste uma imagem aqui</div>
+          <div class="drop-sub">ou <span class="drop-link">escolha do computador</span> · ou cole (Ctrl+V)</div>
+        </div>
+        <img id="preview" class="preview-img" src="" alt="" style="display:none">
+      </div>
+
+      <div class="field" style="margin-top:12px">
+        <label for="foto">Ou cole uma URL de imagem</label>
+        <input id="foto" placeholder="https://exemplo.com/foto.jpg" oninput="onUrlInput()">
+      </div>
+
+      <button class="btn" onclick="salvar()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>
+        Publicar Veículo
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ── TAB: ESTOQUE ── -->
+  <div id="panelEstoque" style="display:none">
+    <div class="card">
+      <div class="estoque-header">
+        <div class="estoque-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="estoqueSearch" placeholder="Buscar veículo…" oninput="renderEstoque()">
+        </div>
+        <span class="estoque-count" id="estoqueCount"></span>
+      </div>
+      <div class="car-list" id="carList"></div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- Footer -->
+<footer class="site-footer">
+  <a class="footer-shop-btn" href="garagem.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+    Ver painel da loja
+  </a>
+  <p class="footer-credit">
+    Desenvolvido por <a href="https://www.instagram.com/peneiira/" target="_blank">@peneiira</a> · © 2026 Garagem Yale
+  </p>
+</footer>
+
+<!-- Modal EDITAR -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="fecharModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="modal-title">Editar Veículo</div>
+
+    <div class="section-label">Identificação</div>
+    <div class="grid" style="margin-bottom:14px">
+      <div class="field"><label for="eMarca">Marca</label><input id="eMarca" autocomplete="off" oninput="sugerirMarcaM()"><div class="suggestions" id="sugMarcaM"></div></div>
+      <div class="field"><label for="eModelo">Modelo</label><input id="eModelo" autocomplete="off" oninput="sugerirModeloM()"><div class="suggestions" id="sugModeloM"></div></div>
+      <div class="field"><label for="eAno">Ano</label><input id="eAno" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')"></div>
+      <div class="field"><label for="eCombustivel">Combustível</label>
+        <select id="eCombustivel"><option value="Flex">Flex</option><option value="Gasolina">Gasolina</option><option value="Etanol">Etanol</option><option value="Diesel">Diesel</option><option value="Elétrico">Elétrico</option><option value="Híbrido">Híbrido</option><option value="GNV">GNV</option></select>
+      </div>
+      <div class="field"><label for="eCambio">Câmbio</label>
+        <select id="eCambio"><option value="Automático">Automático</option><option value="Manual">Manual</option><option value="CVT">CVT</option><option value="Automatizado">Automatizado</option><option value="Dual-clutch">Dual-clutch (DCT)</option></select>
+      </div>
+      <div class="field"><label for="ePortas">Portas</label>
+        <select id="ePortas"><option value="">—</option><option value="2 portas">2 portas</option><option value="4 portas">4 portas</option></select>
+      </div>
+    </div>
+
+    <div class="section-label">Cor</div>
+    <div class="color-grid" id="colorGridM"></div>
+    <div class="field" style="margin-top:10px"><label for="eCor">Cor personalizada</label><input id="eCor" placeholder="Ex: Azul Metálico" oninput="deselectColorM()"></div>
+
+    <hr class="divider">
+    <div class="section-label">Preço &amp; KM</div>
+    <div class="grid" style="margin-bottom:14px">
+      <div class="field"><label for="ePreco">Preço</label><input id="ePreco" placeholder="R$ 0,00" oninput="mascaraPreco(this)"></div>
+      <div class="field"><label for="eKm">Quilometragem</label><input id="eKm" placeholder="0 km" oninput="mascaraKm(this)"></div>
+    </div>
+
+    <div class="section-label">Foto</div>
+    <div class="drop-zone" id="dropZoneM"
+         onclick="document.getElementById('fileInputM').click()"
+         ondragover="onDragOverM(event)" ondragleave="onDragLeaveM()" ondrop="onDropM(event)">
+      <input type="file" id="fileInputM" accept="image/*" style="display:none" onchange="onFileSelectM(event)">
+      <div id="dropIdleM">
+        <div class="drop-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+        <div class="drop-title" style="font-size:13px">Alterar imagem</div>
+        <div class="drop-sub">arraste, clique ou cole</div>
+      </div>
+      <img id="previewM" class="preview-img" src="" alt="" style="display:none">
+    </div>
+    <div class="field" style="margin-top:10px"><label for="eFoto">URL da imagem</label><input id="eFoto" placeholder="https://…" oninput="onUrlInputM()"></div>
+
+    <button class="btn" onclick="salvarEdicao()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>
+      Salvar alterações
+    </button>
+    <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- Confirm delete -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Excluir veículo?</div>
+    <p class="confirm-desc" id="confirmDesc">Esta ação não pode ser desfeita.</p>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="fecharConfirm()">Cancelar</button>
+      <button class="confirm-delete" onclick="confirmarExclusao()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>
+  <span id="toastMsg">Pronto!</span>
+</div>
+
+<script>
+// ── Cores populares ────────────────────────────────────
+const CORES = [
+  { nome: "Branco",            hex: "#f5f5f5" },
+  { nome: "Branco Pérola",     hex: "#f0ede8" },
+  { nome: "Prata",             hex: "#b8b8b8" },
+  { nome: "Cinza",             hex: "#6e6e6e" },
+  { nome: "Cinza Grafite",     hex: "#3a3a3a" },
+  { nome: "Preto",             hex: "#111111" },
+  { nome: "Vermelho",          hex: "#c0392b" },
+  { nome: "Vermelho Metálico", hex: "#922b21" },
+  { nome: "Azul",              hex: "#2874a6" },
+  { nome: "Azul Metálico",     hex: "#1a5276" },
+  { nome: "Azul Marinho",      hex: "#154360" },
+  { nome: "Verde",             hex: "#1e8449" },
+  { nome: "Verde Oliva",       hex: "#4a5e23" },
+  { nome: "Amarelo",           hex: "#d4ac0d" },
+  { nome: "Dourado",           hex: "#b7950b" },
+  { nome: "Laranja",           hex: "#ca6f1e" },
+  { nome: "Marrom",            hex: "#6e2f1a" },
+  { nome: "Bege",              hex: "#c9b99a" },
+  { nome: "Rosa",              hex: "#d98880" },
+  { nome: "Vinho",             hex: "#6b2737" },
+];
+
+function buildColorGrid(containerId, inputId, deselFn) {
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = "";
+  CORES.forEach(c => {
+    const chip = document.createElement("div");
+    chip.className = "color-chip";
+    chip.style.background = c.hex;
+    chip.title = c.nome;
+    chip.dataset.nome = c.nome;
+    chip.onclick = () => {
+      grid.querySelectorAll(".color-chip").forEach(x => x.classList.remove("selected"));
+      chip.classList.add("selected");
+      document.getElementById(inputId).value = c.nome;
+    };
+    grid.appendChild(chip);
+  });
+}
+
+buildColorGrid("colorGrid",  "cor",  () => {});
+buildColorGrid("colorGridM", "eCor", () => {});
+
+function deselectColor()  { document.querySelectorAll("#colorGrid .color-chip").forEach(x => x.classList.remove("selected")); }
+function deselectColorM() { document.querySelectorAll("#colorGridM .color-chip").forEach(x => x.classList.remove("selected")); }
+
+function syncColorChip(gridId, nome) {
+  document.querySelectorAll(`#${gridId} .color-chip`).forEach(c => {
+    c.classList.toggle("selected", c.dataset.nome === nome);
+  });
+}
+
+// ── Máscaras ──────────────────────────────────────────
+function mascaraPreco(el) {
+  let v = el.value.replace(/\D/g, "");
+  if (!v) { el.value = ""; return; }
+  v = (parseInt(v) / 100).toFixed(2);
+  el.value = "R$ " + parseFloat(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function mascaraKm(el) {
+  let v = el.value.replace(/\D/g, "");
+  if (!v) { el.value = ""; return; }
+  el.value = parseInt(v).toLocaleString("pt-BR") + " km";
+}
+
+// ── Banco de marcas ───────────────────────────────────
+let banco = JSON.parse(localStorage.getItem("bancoMarcas")) || {
+  Chevrolet:       { modelos: ["Onix","Onix Plus","Tracker","Spin","Montana","Cruze","Equinox","S10","Blazer","Trailblazer","Cobalt","Prisma","Agile","Celta","Corsa","Meriva","Vectra","Zafira","Captiva"], uso: 0 },
+  Volkswagen:      { modelos: ["Gol","Polo","Polo GTS","T-Cross","Taos","Nivus","Virtus","Voyage","Fox","Golf","Golf GTI","Amarok","Saveiro","Up","SpaceFox","Jetta","Tiguan","Touareg"], uso: 0 },
+  Fiat:            { modelos: ["Pulse","Fastback","Cronos","Argo","Mobi","Uno","Palio","Siena","Grand Siena","Toro","Ducato","Doblo","Linea","Punto","Bravo","Idea","Stilo","500","500X","Freemont"], uso: 0 },
+  Ford:            { modelos: ["Ka","Ka Sedan","EcoSport","Territory","Bronco","Ranger","F-150","Mustang","Maverick","Edge","Explorer","Focus","Fusion","Fiesta","Mondeo"], uso: 0 },
+  Renault:         { modelos: ["Kwid","Sandero","Logan","Duster","Captur","Oroch","Stepway","Fluence","Megane","Clio","Symbol","Master","Kangoo","Zoe"], uso: 0 },
+  Hyundai:         { modelos: ["HB20","HB20S","HB20X","Creta","Tucson","Santa Fe","Ix35","Ioniq 5","Ioniq 6","Azera","Elantra","Sonata","Veloster","Kona"], uso: 0 },
+  Toyota:          { modelos: ["Corolla","Corolla Cross","Hilux","Hilux SW4","Yaris","C-HR","RAV4","Fortuner","Prado","Land Cruiser","Prius","Camry","GR86","Supra"], uso: 0 },
+  Honda:           { modelos: ["Civic","Civic Type R","HR-V","WR-V","CR-V","Fit","City","City Hatch","Accord","Pilot","ZR-V","Odyssey","Jazz"], uso: 0 },
+  Nissan:          { modelos: ["Kicks","Frontier","Versa","March","Sentra","Altima","Murano","Pathfinder","X-Trail","Leaf","GT-R","370Z","Livina"], uso: 0 },
+  Jeep:            { modelos: ["Compass","Renegade","Commander","Wrangler","Gladiator","Grand Cherokee","Cherokee","Avenger"], uso: 0 },
+  BMW:             { modelos: ["118i","120i","125i","M135i","320i","330i","M340i","420i","520i","530i","M550i","740i","X1","X2","X3","X4","X5","X6","X7","M2","M3","M4","M5","iX","i4","i7","Z4"], uso: 0 },
+  "Mercedes-Benz": { modelos: ["A 200","A 250","C 180","C 200","C 300","C 43 AMG","E 200","E 300","S 400","S 500","GLA 200","GLB 200","GLC 200","GLC 300","GLE 400","GLS 450","CLA 200","AMG GT","EQS"], uso: 0 },
+  Audi:            { modelos: ["A1","A3","A3 Sedan","A4","A5","A6","A7","A8","Q2","Q3","Q5","Q7","Q8","TT","R8","e-tron","e-tron GT","RS3","RS5","RS6","S3","S5"], uso: 0 },
+  Volvo:           { modelos: ["XC40","XC60","XC90","S60","S90","V60","V90","C40","EX30","EX90"], uso: 0 },
+  "Land Rover":    { modelos: ["Discovery","Discovery Sport","Defender","Range Rover","Range Rover Sport","Range Rover Evoque","Range Rover Velar","Freelander"], uso: 0 },
+  Porsche:         { modelos: ["911","Cayenne","Macan","Panamera","Taycan","718 Cayman","718 Boxster"], uso: 0 },
+  Jaguar:          { modelos: ["F-Pace","E-Pace","I-Pace","XE","XF","XJ","F-Type"], uso: 0 },
+  Lexus:           { modelos: ["UX","NX","RX","GX","LX","IS","ES","GS","LS","LC"], uso: 0 },
+  Ferrari:         { modelos: ["Roma","Portofino","SF90","296 GTB","F8 Tributo","812 Superfast","Purosangue"], uso: 0 },
+  Lamborghini:     { modelos: ["Urus","Huracan","Revuelto"], uso: 0 },
+  Maserati:        { modelos: ["Ghibli","Quattroporte","Levante","Grecale","GranTurismo"], uso: 0 },
+  Kia:             { modelos: ["Sportage","Sorento","Stinger","Carnival","EV6","Picanto","Cerato","Optima"], uso: 0 },
+  Mitsubishi:      { modelos: ["Eclipse Cross","Outlander","ASX","L200 Triton","Pajero Full","Pajero Sport","Lancer"], uso: 0 },
+  Subaru:          { modelos: ["Forester","Outback","Impreza","WRX","WRX STI","BRZ","Crosstrek"], uso: 0 },
+  Mazda:           { modelos: ["CX-3","CX-5","CX-30","Mazda3","Mazda6","MX-5","CX-60","CX-90"], uso: 0 },
+  Suzuki:          { modelos: ["Vitara","S-Cross","Swift","Jimny","Ignis","Baleno"], uso: 0 },
+  BYD:             { modelos: ["Dolphin","Seal","Atto 3","Han","Tang","Yuan Plus","Shark"], uso: 0 },
+  Tesla:           { modelos: ["Model 3","Model Y","Model S","Model X","Cybertruck","Roadster"], uso: 0 },
+  GWM:             { modelos: ["Haval H6","Haval H2","Haval H1","Ora 03","Tank 300","Tank 500"], uso: 0 },
+  "Caoa Chery":    { modelos: ["Tiggo 5x","Tiggo 7","Tiggo 7 Pro","Tiggo 8","Tiggo 8 Pro","Arrizo 6 Pro"], uso: 0 },
+  Ram:             { modelos: ["700","1000","1500","2500","3500","TRX"], uso: 0 },
+  Citroen:         { modelos: ["C3","C3 Aircross","C4 Cactus","Berlingo","Jumper"], uso: 0 },
+  Peugeot:         { modelos: ["208","2008","3008","5008","508","Partner","Expert","Boxer"], uso: 0 },
+};
+
+let focusMarca = -1, focusModelo = -1;
+let focusMarcaM = -1, focusModeloM = -1;
+
+// ── Autocomplete ──────────────────────────────────────
+function sugerirMarca() { renderAC(Object.keys(banco).filter(m => m.toLowerCase().includes(document.getElementById("marca").value.toLowerCase())).sort((a,b)=>banco[b].uso-banco[a].uso), "sugMarca", "marca", false); }
+function sugerirModelo() { const m = document.getElementById("marca").value; if (!banco[m]) { document.getElementById("sugModelo").style.display="none"; return; } renderAC(banco[m].modelos.filter(x=>x.toLowerCase().includes(document.getElementById("modelo").value.toLowerCase())), "sugModelo", "modelo", false); }
+function sugerirMarcaM() { renderAC(Object.keys(banco).filter(m => m.toLowerCase().includes(document.getElementById("eMarca").value.toLowerCase())).sort((a,b)=>banco[b].uso-banco[a].uso), "sugMarcaM", "eMarca", true); }
+function sugerirModeloM() { const m = document.getElementById("eMarca").value; if (!banco[m]) { document.getElementById("sugModeloM").style.display="none"; return; } renderAC(banco[m].modelos.filter(x=>x.toLowerCase().includes(document.getElementById("eModelo").value.toLowerCase())), "sugModeloM", "eModelo", true); }
+
+function renderAC(lista, boxId, inputId, isModal) {
+  const box = document.getElementById(boxId);
+  if (!lista.length) { box.style.display="none"; return; }
+  box.innerHTML = lista.map(item =>
+    `<div onclick="selectAC(this)" data-val="${item.replace(/"/g,'&quot;')}" data-input="${inputId}" data-modal="${isModal}">${item}</div>`
+  ).join("");
+  box.style.display = "block";
+}
+
+function selectAC(el) {
+  const val = el.dataset.val;
+  const inputId = el.dataset.input;
+  document.getElementById(inputId).value = val;
+  el.closest(".suggestions").style.display = "none";
+  // if marca field, clear and trigger modelo
+  if (inputId === "marca") { document.getElementById("modelo").value = ""; sugerirModelo(); }
+  if (inputId === "eMarca") { document.getElementById("eModelo").value = ""; sugerirModeloM(); }
+}
+
+document.addEventListener("keydown", e => {
+  const ativo = document.activeElement.id;
+  const map = { marca:"sugMarca", modelo:"sugModelo", eMarca:"sugMarcaM", eModelo:"sugModeloM" };
+  if (!map[ativo]) return;
+  const box = document.getElementById(map[ativo]);
+  if (!box || box.style.display==="none") return;
+  const itens = box.querySelectorAll("div");
+  if (!itens.length) return;
+  const isMarca = ativo === "marca" || ativo === "eMarca";
+  const isModal = ativo === "eMarca" || ativo === "eModelo";
+  let focus = isModal ? (isMarca ? focusMarcaM : focusModeloM) : (isMarca ? focusMarca : focusModelo);
+  if (e.key==="ArrowDown")      { e.preventDefault(); focus=(focus+1)%itens.length; }
+  else if (e.key==="ArrowUp")   { e.preventDefault(); focus=(focus-1+itens.length)%itens.length; }
+  else if (e.key==="Enter" && focus>=0) { itens[focus].click(); return; }
+  else return;
+  if (isModal) { if (isMarca) focusMarcaM=focus; else focusModeloM=focus; }
+  else         { if (isMarca) focusMarca=focus;  else focusModelo=focus; }
+  itens.forEach((x,i) => x.classList.toggle("active", i===focus));
+});
+
+document.addEventListener("click", e => {
+  if (!e.target.closest(".field") && !e.target.closest(".drop-zone")) {
+    ["sugMarca","sugModelo","sugMarcaM","sugModeloM"].forEach(id => { const el = document.getElementById(id); if(el) el.style.display="none"; });
+  }
+});
+
+// ── Toast ──────────────────────────────────────────────
+function showToast(msg, isError=false) {
+  const t = document.getElementById("toast");
+  document.getElementById("toastMsg").textContent = msg;
+  t.style.borderColor = isError ? "var(--red)" : "var(--gold)";
+  t.style.color = isError ? "var(--red)" : "var(--gold)";
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ── Tabs ──────────────────────────────────────────────
+function setTab(tab) {
+  document.getElementById("panelCadastrar").style.display = tab==="cadastrar" ? "block" : "none";
+  document.getElementById("panelEstoque").style.display   = tab==="estoque"   ? "block" : "none";
+  document.getElementById("tabCadastrar").classList.toggle("active", tab==="cadastrar");
+  document.getElementById("tabEstoque").classList.toggle("active",   tab==="estoque");
+  if (tab==="estoque") renderEstoque();
+}
+
+function updateBadge() {
+  const n = (JSON.parse(localStorage.getItem("cars"))||[]).length;
+  document.getElementById("tabBadge").textContent = n;
+}
+updateBadge();
+
+// ── Estoque render ────────────────────────────────────
+function renderEstoque() {
+  const carros = JSON.parse(localStorage.getItem("cars")) || [];
+  const termo  = (document.getElementById("estoqueSearch")?.value || "").toLowerCase();
+  const lista  = carros.map((c,i) => ({...c, _idx:i})).filter(c =>
+    !termo || [c.marca, c.modelo, c.ano, c.cor].some(v => v && v.toLowerCase().includes(termo))
+  );
+
+  document.getElementById("estoqueCount").innerHTML =
+    `<strong>${lista.length}</strong> de ${carros.length} veículo${carros.length!==1?"s":""}`;
+
+  const container = document.getElementById("carList");
+  if (!lista.length) {
+    container.innerHTML = `<div class="empty-estoque">Nenhum veículo encontrado.</div>`;
+    return;
+  }
+
+  container.innerHTML = lista.map(c => `
+    <div class="car-row">
+      ${c.foto
+        ? `<img class="car-thumb" src="${c.foto}" alt="${c.marca}">`
+        : `<div class="car-thumb-ph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.2"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7l-2-4H10L8 7"/></svg></div>`}
+      <div class="car-info">
+        <div class="car-name">${c.marca} ${c.modelo} ${c.ano || ""}</div>
+        <div class="car-meta">${c.km || "—"} · ${c.cor || "—"} · ${c.combustivel || "—"}</div>
+      </div>
+      <div class="car-price-tag">${c.preco || "Consulte"}</div>
+      <div class="car-actions">
+        <button class="icon-btn edit" onclick="abrirEdicao(${c._idx})" title="Editar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="icon-btn del" onclick="pedirExclusao(${c._idx})" title="Excluir">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </button>
+      </div>
+    </div>`).join("");
+}
+
+// ── Foto handling (cadastro) ──────────────────────────
+let fotoData = "";
+
+function setPreview(src) {
+  fotoData = src;
+  const p = document.getElementById("preview"), d = document.getElementById("dropIdle"), z = document.getElementById("dropZone");
+  const old = z.querySelector(".preview-clear"); if(old) old.remove();
+  if (src) { p.src=src; p.style.display="block"; d.style.display="none"; addClear(z,clearPreview); }
+  else      { p.style.display="none"; p.src=""; d.style.display="block"; }
+}
+function clearPreview() { fotoData=""; document.getElementById("foto").value=""; setPreview(""); }
+function addClear(zone, fn) {
+  const btn=document.createElement("div"); btn.className="preview-clear"; btn.title="Remover foto";
+  btn.innerHTML=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+  btn.onclick=ev=>{ev.stopPropagation();fn();}; zone.appendChild(btn);
+}
+function loadFile(file, cb) { if(!file||!file.type.startsWith("image/")) return; const r=new FileReader(); r.onload=e=>cb(e.target.result); r.readAsDataURL(file); }
+function onFileSelect(e) { loadFile(e.target.files[0], setPreview); }
+function onDragOver(e)   { e.preventDefault(); document.getElementById("dropZone").classList.add("dragover"); }
+function onDragLeave()   { document.getElementById("dropZone").classList.remove("dragover"); }
+function onDrop(e) { e.preventDefault(); document.getElementById("dropZone").classList.remove("dragover"); const f=e.dataTransfer.files[0]; if(f){loadFile(f,setPreview);return;} const url=e.dataTransfer.getData("text/plain"); if(url){document.getElementById("foto").value=url;setPreview(url);} }
+function onUrlInput() { const url=document.getElementById("foto").value.trim(); if(url)setPreview(url); else clearPreview(); }
+
+// ── Foto handling (modal) ─────────────────────────────
+let fotoDataM = "";
+
+function setPreviewM(src) {
+  fotoDataM = src;
+  const p=document.getElementById("previewM"), d=document.getElementById("dropIdleM"), z=document.getElementById("dropZoneM");
+  const old=z.querySelector(".preview-clear"); if(old) old.remove();
+  if(src){ p.src=src; p.style.display="block"; d.style.display="none"; addClear(z,clearPreviewM); }
+  else   { p.style.display="none"; p.src=""; d.style.display="block"; }
+}
+function clearPreviewM() { fotoDataM=""; document.getElementById("eFoto").value=""; setPreviewM(""); }
+function onFileSelectM(e) { loadFile(e.target.files[0], setPreviewM); }
+function onDragOverM(e)   { e.preventDefault(); document.getElementById("dropZoneM").classList.add("dragover"); }
+function onDragLeaveM()   { document.getElementById("dropZoneM").classList.remove("dragover"); }
+function onDropM(e) { e.preventDefault(); document.getElementById("dropZoneM").classList.remove("dragover"); const f=e.dataTransfer.files[0]; if(f){loadFile(f,setPreviewM);return;} const url=e.dataTransfer.getData("text/plain"); if(url){document.getElementById("eFoto").value=url;setPreviewM(url);} }
+function onUrlInputM() { const url=document.getElementById("eFoto").value.trim(); if(url)setPreviewM(url); else clearPreviewM(); }
+
+// Paste for both zones
+document.addEventListener("paste", e => {
+  const items = e.clipboardData?.items; if(!items) return;
+  for(const item of items) {
+    if(item.type.startsWith("image/")) {
+      const isModal = document.getElementById("modalOverlay").classList.contains("open");
+      loadFile(item.getAsFile(), isModal ? setPreviewM : setPreview);
+      return;
+    }
+  }
+});
+
+// ── Salvar (novo) ─────────────────────────────────────
+function salvar() {
+  const m   = document.getElementById("marca").value.trim();
+  const mod = document.getElementById("modelo").value.trim();
+  if (!m||!mod) { showToast("Preencha Marca e Modelo", true); return; }
+  if (!banco[m]) banco[m]={modelos:[],uso:0};
+  if (!banco[m].modelos.includes(mod)) banco[m].modelos.push(mod);
+  banco[m].uso++;
+  localStorage.setItem("bancoMarcas", JSON.stringify(banco));
+
+  const carros = JSON.parse(localStorage.getItem("cars"))||[];
+  carros.push({
+    marca: m, modelo: mod,
+    ano:         document.getElementById("ano").value.trim(),
+    preco:       document.getElementById("preco").value.trim(),
+    km:          document.getElementById("km").value.trim(),
+    cor:         document.getElementById("cor").value.trim(),
+    foto:        fotoData || document.getElementById("foto").value.trim(),
+    combustivel: document.getElementById("combustivel").value,
+    cambio:      document.getElementById("cambio").value,
+    portas:      document.getElementById("portas").value,
+    desc: ""
+  });
+  localStorage.setItem("cars", JSON.stringify(carros));
+
+  ["marca","modelo","ano","cor","preco","km","foto"].forEach(id => document.getElementById(id).value="");
+  document.getElementById("combustivel").value="Flex";
+  document.getElementById("cambio").value="Automático";
+  document.getElementById("portas").value="";
+  deselectColor();
+  clearPreview();
+  updateBadge();
+  showToast("Veículo publicado com sucesso!");
+}
+
+// ── Modal EDITAR ──────────────────────────────────────
+let editIdx = -1;
+
+function abrirEdicao(idx) {
+  editIdx = idx;
+  const carros = JSON.parse(localStorage.getItem("cars"))||[];
+  const c = carros[idx]; if(!c) return;
+
+  document.getElementById("eMarca").value       = c.marca || "";
+  document.getElementById("eModelo").value      = c.modelo || "";
+  document.getElementById("eAno").value         = c.ano || "";
+  document.getElementById("eCor").value         = c.cor || "";
+  document.getElementById("ePreco").value       = c.preco || "";
+  document.getElementById("eKm").value          = c.km || "";
+  document.getElementById("eFoto").value        = c.foto && !c.foto.startsWith("data:") ? c.foto : "";
+  document.getElementById("eCombustivel").value = c.combustivel || "Flex";
+  document.getElementById("eCambio").value      = c.cambio || "Automático";
+  document.getElementById("ePortas").value      = c.portas || "";
+
+  syncColorChip("colorGridM", c.cor || "");
+  setPreviewM(c.foto || "");
+
+  document.getElementById("modalOverlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function fecharModal() {
+  document.getElementById("modalOverlay").classList.remove("open");
+  document.body.style.overflow = "";
+  editIdx = -1;
+}
+
+function salvarEdicao() {
+  if (editIdx < 0) return;
+  const carros = JSON.parse(localStorage.getItem("cars"))||[];
+  carros[editIdx] = {
+    ...carros[editIdx],
+    marca:       document.getElementById("eMarca").value.trim(),
+    modelo:      document.getElementById("eModelo").value.trim(),
+    ano:         document.getElementById("eAno").value.trim(),
+    cor:         document.getElementById("eCor").value.trim(),
+    preco:       document.getElementById("ePreco").value.trim(),
+    km:          document.getElementById("eKm").value.trim(),
+    foto:        fotoDataM || document.getElementById("eFoto").value.trim() || carros[editIdx].foto,
+    combustivel: document.getElementById("eCombustivel").value,
+    cambio:      document.getElementById("eCambio").value,
+    portas:      document.getElementById("ePortas").value,
+  };
+  localStorage.setItem("cars", JSON.stringify(carros));
+  fecharModal();
+  renderEstoque();
+  showToast("Veículo atualizado!");
+}
+
+// ── Exclusão ──────────────────────────────────────────
+let deleteIdx = -1;
+
+function pedirExclusao(idx) {
+  deleteIdx = idx;
+  const carros = JSON.parse(localStorage.getItem("cars"))||[];
+  const c = carros[idx];
+  document.getElementById("confirmDesc").textContent =
+    c ? `Excluir ${c.marca} ${c.modelo} ${c.ano||""}? Esta ação não pode ser desfeita.` : "Esta ação não pode ser desfeita.";
+  document.getElementById("confirmOverlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function fecharConfirm() {
+  document.getElementById("confirmOverlay").classList.remove("open");
+  document.body.style.overflow = "";
+  deleteIdx = -1;
+}
+
+function confirmarExclusao() {
+  if (deleteIdx < 0) return;
+  const carros = JSON.parse(localStorage.getItem("cars"))||[];
+  carros.splice(deleteIdx, 1);
+  localStorage.setItem("cars", JSON.stringify(carros));
+  fecharConfirm();
+  updateBadge();
+  renderEstoque();
+  showToast("Veículo excluído.");
+}
+
+// Close modal on overlay click
+document.getElementById("modalOverlay").addEventListener("click", e => { if(e.target===e.currentTarget) fecharModal(); });
+document.getElementById("confirmOverlay").addEventListener("click", e => { if(e.target===e.currentTarget) fecharConfirm(); });
+document.addEventListener("keydown", e => { if(e.key==="Escape"){ fecharModal(); fecharConfirm(); } });
+</script>
+</body>
+</html>

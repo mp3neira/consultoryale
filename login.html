@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acesso Restrito — Garagem Yale</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c8a96e;
+    --gold-light: #e2c99a;
+    --gold-dim: rgba(200,169,110,0.12);
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1c1c1c;
+    --border: rgba(200,169,110,0.14);
+    --border-hover: rgba(200,169,110,0.35);
+    --text: #f0ece4;
+    --muted: #5a5550;
+    --error: #e05c5c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Animated background */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  /* Subtle diagonal lines */
+  .bg-layer::before {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 60px,
+      rgba(200,169,110,0.018) 60px,
+      rgba(200,169,110,0.018) 61px
+    );
+    animation: drift 40s linear infinite;
+  }
+
+  @keyframes drift {
+    from { transform: translate(0, 0); }
+    to   { transform: translate(120px, 120px); }
+  }
+
+  /* Glow orb */
+  .bg-layer::after {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(200,169,110,0.06) 0%, transparent 70%);
+    animation: pulse 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulse {
+    from { opacity: 0.5; transform: translateX(-50%) scale(1); }
+    to   { opacity: 1;   transform: translateX(-50%) scale(1.15); }
+  }
+
+  /* Main container */
+  .main {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+    animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Logo */
+  .logo-area {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: fadeUp 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .logo-icon {
+    width: 52px;
+    height: 52px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    background: var(--surface);
+    position: relative;
+  }
+
+  .logo-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(200,169,110,0.15), transparent);
+  }
+
+  .logo-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--gold);
+  }
+
+  .logo-name span {
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.7s 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+  }
+
+  /* Card title */
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 300;
+    margin-bottom: 32px;
+    line-height: 1.5;
+  }
+
+  /* Fields */
+  .field {
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    transition: color 0.2s;
+  }
+
+  .field:focus-within label { color: var(--gold); }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--muted);
+    pointer-events: none;
+    transition: color 0.2s;
+  }
+
+  .field:focus-within .input-icon { color: var(--gold); }
+
+  .field input {
+    width: 100%;
+    padding: 13px 16px 13px 42px;
+    background: var(--surface2);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+
+  .field input::placeholder { color: var(--muted); }
+
+  .field input:focus {
+    border-color: var(--gold);
+    background: #1f1f1f;
+    box-shadow: 0 0 0 3px rgba(200,169,110,0.08);
+  }
+
+  .field input.error-input {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px rgba(224,92,92,0.08);
+  }
+
+  /* Password toggle */
+  .pwd-toggle {
+    position: absolute;
+    right: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+  }
+
+  .pwd-toggle:hover { color: var(--gold); }
+
+  /* Error message */
+  .error-msg {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(224,92,92,0.08);
+    border: 1px solid rgba(224,92,92,0.2);
+    border-radius: 10px;
+    color: var(--error);
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    animation: shake 0.35s ease;
+  }
+
+  .error-msg.visible { display: flex; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-6px); }
+    40%       { transform: translateX(6px); }
+    60%       { transform: translateX(-4px); }
+    80%       { transform: translateX(4px); }
+  }
+
+  /* Attempts warning */
+  .attempts-msg {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 12px;
+    min-height: 16px;
+    transition: color 0.2s;
+  }
+
+  .attempts-msg.warn { color: #e0a05c; }
+
+  /* Button */
+  .btn {
+    width: 100%;
+    padding: 15px 24px;
+    background: var(--gold);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s, opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .btn:hover::after { opacity: 1; }
+  .btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top-color: #0a0a0a;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .btn.loading .btn-text { display: none; }
+  .btn.loading .spinner  { display: block; }
+
+  /* Divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 28px 0 0;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .divider span {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 28px;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    animation: fadeUp 0.7s 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .footer a {
+    color: var(--gold);
+    text-decoration: none;
+  }
+  .footer a:hover { text-decoration: underline; }
+
+  .footer-shop-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    margin-bottom: 20px;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+    animation: fadeUp 0.7s 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .footer-shop-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(200,169,110,0.05);
+  }
+
+  /* Success overlay */
+  .success-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+
+  .success-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .success-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    animation: scalePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  @keyframes scalePop {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  .success-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.04em;
+  }
+
+  .success-sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 300;
+    letter-spacing: 0.08em;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+
+<!-- Success overlay -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-icon">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M5 13l4 4L19 7"/>
+    </svg>
+  </div>
+  <div class="success-text">Acesso autorizado</div>
+  <div class="success-sub">Redirecionando para o painel…</div>
+</div>
+
+<div class="main">
+  <!-- Logo -->
+  <div class="logo-area">
+    <div class="logo-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+    <div class="logo-name">Garagem <span>Yale</span></div>
+    <div class="logo-sub">Área restrita</div>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+    <div class="card-title">Entrar no painel</div>
+    <p class="card-desc">Credenciais de acesso exclusivas para o logista.</p>
+
+    <div class="error-msg" id="errorMsg">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="errorText">Usuário ou senha incorretos.</span>
+    </div>
+
+    <div class="field">
+      <label for="usuario">Usuário</label>
+      <div class="input-wrap">
+        <span class="input-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </span>
+        <input type="text" id="usuario" placeholder="Digite seu usuário" autocomplete="username" spellcheck="false">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="senha">Senha</label>
+      <div class="input-wrap">
+        <span class="input-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        </span>
+        <input type="password" id="senha" placeholder="••••••••••" autocomplete="current-password">
+        <button class="pwd-toggle" id="pwdToggle" type="button" onclick="toggleSenha()" tabindex="-1" title="Mostrar/ocultar senha">
+          <svg id="eyeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <button class="btn" id="btnEntrar" onclick="tentarLogin()">
+      <span class="btn-text">Acessar painel</span>
+      <div class="spinner"></div>
+    </button>
+
+    <div class="attempts-msg" id="attemptsMsg"></div>
+
+    <div class="divider"><span>Acesso seguro</span></div>
+  </div>
+
+  <div style="text-align:center">
+    <a class="footer-shop-btn" href="garagem.html">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+      </svg>
+      Ir para o painel da loja
+    </a>
+    <div class="footer">
+      Desenvolvido por <a href="https://www.instagram.com/peneiira/" target="_blank">@peneiira</a> · © 2026 Garagem Yale
+    </div>
+  </div>
+</div>
+
+<script>
+  const USUARIO_CORRETO = "master";
+  const SENHA_CORRETA   = "Master.2078!";
+  const MAX_TENTATIVAS  = 5;
+  const BLOQUEIO_MS     = 60 * 1000; // 1 minuto
+
+  let tentativas   = parseInt(sessionStorage.getItem("loginTentativas") || "0");
+  let bloqueadoAte = parseInt(sessionStorage.getItem("loginBloqueadoAte") || "0");
+
+  // Redireciona se já autenticado
+  if (sessionStorage.getItem("logistAutenticado") === "true") {
+    window.location.href = "logista.html";
+  }
+
+  const btnEntrar   = document.getElementById("btnEntrar");
+  const errorMsg    = document.getElementById("errorMsg");
+  const errorText   = document.getElementById("errorText");
+  const attemptsMsg = document.getElementById("attemptsMsg");
+
+  function toggleSenha() {
+    const input = document.getElementById("senha");
+    const icon  = document.getElementById("eyeIcon");
+    if (input.type === "password") {
+      input.type = "text";
+      icon.innerHTML = `
+        <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+        <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>`;
+    } else {
+      input.type = "password";
+      icon.innerHTML = `
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>`;
+    }
+  }
+
+  function verificarBloqueio() {
+    const agora = Date.now();
+    if (bloqueadoAte > agora) {
+      const restante = Math.ceil((bloqueadoAte - agora) / 1000);
+      mostrarErro(`Muitas tentativas. Aguarde ${restante}s para tentar novamente.`);
+      btnEntrar.disabled = true;
+      setTimeout(() => {
+        btnEntrar.disabled = false;
+        errorMsg.classList.remove("visible");
+        attemptsMsg.textContent = "";
+        tentativas = 0;
+        sessionStorage.removeItem("loginTentativas");
+        sessionStorage.removeItem("loginBloqueadoAte");
+      }, bloqueadoAte - agora);
+      return true;
+    }
+    return false;
+  }
+
+  function mostrarErro(msg) {
+    errorText.textContent = msg;
+    errorMsg.classList.remove("visible");
+    void errorMsg.offsetWidth; // reflow para re-trigger animation
+    errorMsg.classList.add("visible");
+
+    document.getElementById("usuario").classList.add("error-input");
+    document.getElementById("senha").classList.add("error-input");
+  }
+
+  function limparErro() {
+    errorMsg.classList.remove("visible");
+    document.getElementById("usuario").classList.remove("error-input");
+    document.getElementById("senha").classList.remove("error-input");
+  }
+
+  function tentarLogin() {
+    if (verificarBloqueio()) return;
+
+    const usuario = document.getElementById("usuario").value.trim();
+    const senha   = document.getElementById("senha").value;
+
+    if (!usuario || !senha) {
+      mostrarErro("Preencha usuário e senha para continuar.");
+      return;
+    }
+
+    // Simula loading
+    btnEntrar.classList.add("loading");
+    btnEntrar.disabled = true;
+    limparErro();
+
+    setTimeout(() => {
+      btnEntrar.classList.remove("loading");
+      btnEntrar.disabled = false;
+
+      if (usuario === USUARIO_CORRETO && senha === SENHA_CORRETA) {
+        // Sucesso
+        sessionStorage.setItem("logistAutenticado", "true");
+        sessionStorage.removeItem("loginTentativas");
+        sessionStorage.removeItem("loginBloqueadoAte");
+        document.getElementById("successOverlay").classList.add("show");
+        setTimeout(() => window.location.href = "logista.html", 1800);
+      } else {
+        tentativas++;
+        sessionStorage.setItem("loginTentativas", tentativas);
+        const restantes = MAX_TENTATIVAS - tentativas;
+
+        if (tentativas >= MAX_TENTATIVAS) {
+          bloqueadoAte = Date.now() + BLOQUEIO_MS;
+          sessionStorage.setItem("loginBloqueadoAte", bloqueadoAte);
+          mostrarErro("Conta bloqueada temporariamente. Aguarde 60 segundos.");
+          attemptsMsg.textContent = "";
+          verificarBloqueio();
+        } else {
+          mostrarErro("Usuário ou senha incorretos.");
+          if (restantes <= 2) {
+            attemptsMsg.className = "attempts-msg warn";
+            attemptsMsg.textContent = `${restantes} tentativa${restantes > 1 ? "s" : ""} restante${restantes > 1 ? "s" : ""} antes do bloqueio.`;
+          } else {
+            attemptsMsg.className = "attempts-msg";
+            attemptsMsg.textContent = "";
+          }
+        }
+      }
+    }, 900);
+  }
+
+  // Enter para confirmar
+  document.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !btnEntrar.disabled) tentarLogin();
+  });
+
+  // Limpa erro ao digitar
+  ["usuario", "senha"].forEach(id => {
+    document.getElementById(id).addEventListener("input", limparErro);
+  });
+
+  // Verifica bloqueio ao carregar
+  verificarBloqueio();
+</script>
+</body>
+</html>
