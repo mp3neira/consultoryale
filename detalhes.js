@@ -98,7 +98,7 @@ async function carregarDetalhe() {
           Falar no WhatsApp
         </a>
 
-        <a class="btn-back" href="garagem.html">
+        <a class="btn-back" href="index.html">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 12H5M12 5l-7 7 7 7"/>
           </svg>
@@ -113,7 +113,7 @@ function erroHTML(msg) {
     <div class="error-page">
       <h2>Veículo não encontrado</h2>
       <p style="color:var(--muted);margin-bottom:24px">${msg}</p>
-      <a class="btn-back" href="garagem.html" style="max-width:200px;display:inline-flex;align-items:center;gap:8px;padding:14px 24px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:14px;text-decoration:none;font-size:13px">
+      <a class="btn-back" href="index.html" style="max-width:200px;display:inline-flex;align-items:center;gap:8px;padding:14px 24px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:14px;text-decoration:none;font-size:13px">
         Ver estoque
       </a>
     </div>`;
