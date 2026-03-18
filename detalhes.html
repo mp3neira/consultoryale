@@ -339,7 +339,6 @@
 <div id="root"></div>
 
 <script>
-const carros = JSON.parse(localStorage.getItem("cars")) || [];
 const index  = parseInt(localStorage.getItem("carroSelecionado") || "0", 10);
 const c      = carros[index];
 const root   = document.getElementById("root");
@@ -431,5 +430,8 @@ if (!c) {
     </div>`;
 }
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="detalhes.js"></script>
 </body>
 </html>

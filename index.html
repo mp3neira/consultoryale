@@ -352,11 +352,6 @@
 
 <script>
 const WHATSAPP = "5547999064574";
-let carros = [];
-// Populate marca filter
-const marcas = [...new Set(carros.map(c => c.marca).filter(Boolean))].sort();
-const sel = document.getElementById("filterMarca");
-marcas.forEach(m => { const o = document.createElement("option"); o.value = m; o.textContent = m; sel.appendChild(o); });
 
 function precoNum(str) {
   if (!str) return 0;
@@ -421,7 +416,7 @@ function renderLista(lista) {
         <div class="card-year">${c.ano || ""}${c.km ? " · " + c.km : ""}${c.cor ? " · " + c.cor : ""}</div>
         <div class="card-price">${c.preco || "Consulte"}</div>
         <div class="card-actions">
-          <a class="btn-primary" href="detalhes.html" onclick="localStorage.setItem('carroSelecionado','${c._idx}')">
+          <a class="btn-primary" href="detalhes.html" onclick="localStorage.setItem('carroSelecionado','${c.id}')">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             Ver detalhes
           </a>

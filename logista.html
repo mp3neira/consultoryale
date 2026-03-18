@@ -5,11 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel do Logista — Garagem Yale</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-
-
-<h2>Estoque</h2>
-<div id="estoque"></div>
 <style>
   :root {
     --gold: #c8a96e;
@@ -88,11 +83,7 @@
 
   /* Color picker */
   .color-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-  .color-chip {
-    width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
-    border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s;
-    position: relative;
-  }
+  .color-chip { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s; position: relative; }
   .color-chip:hover { transform: scale(1.15); }
   .color-chip.selected { border-color: var(--gold); }
   .color-chip.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: rgba(255,255,255,0.9); text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
@@ -123,7 +114,7 @@
   .toast { position: fixed; bottom: 32px; right: 32px; background: var(--surface); border: 1px solid var(--gold); border-radius: var(--radius); padding: 15px 22px; font-size: 13px; color: var(--gold); display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateY(12px); transition: opacity 0.3s, transform 0.3s; pointer-events: none; z-index: 999; }
   .toast.show { opacity: 1; transform: translateY(0); }
 
-  /* ── Estoque list ── */
+  /* Estoque list */
   .estoque-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
   .estoque-search { flex: 1; min-width: 180px; position: relative; }
   .estoque-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
@@ -134,28 +125,18 @@
   .estoque-count strong { color: var(--gold); }
 
   .car-list { display: flex; flex-direction: column; gap: 10px; }
-
-  .car-row {
-    background: var(--surface2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;
-    padding: 14px 16px; display: flex; align-items: center; gap: 14px;
-    transition: border-color 0.2s;
-  }
+  .car-row { background: var(--surface2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; transition: border-color 0.2s; }
   .car-row:hover { border-color: var(--border); }
-
   .car-thumb { width: 64px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--surface3); flex-shrink: 0; }
   .car-thumb-ph { width: 64px; height: 48px; border-radius: 8px; background: var(--surface3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-
   .car-info { flex: 1; min-width: 0; }
   .car-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .car-meta { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .car-price-tag { font-size: 14px; font-weight: 600; color: var(--gold); flex-shrink: 0; white-space: nowrap; }
-
   .car-actions { display: flex; gap: 8px; flex-shrink: 0; }
-
   .icon-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--muted); transition: border-color 0.2s, color 0.2s, background 0.2s; }
   .icon-btn:hover.edit { border-color: var(--gold); color: var(--gold); background: rgba(200,169,110,0.08); }
-  .icon-btn:hover.del { border-color: var(--red); color: var(--red); background: rgba(224,92,92,0.08); }
-
+  .icon-btn:hover.del  { border-color: var(--red);  color: var(--red);  background: rgba(224,92,92,0.08); }
   .empty-estoque { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; }
 
   /* Modal */
@@ -201,6 +182,7 @@
 </head>
 <body>
 
+<!-- Proteção de rota + logout -->
 <script>
   if (sessionStorage.getItem("logistAutenticado") !== "true") {
     window.location.href = "login.html";
@@ -239,7 +221,7 @@
     </button>
   </div>
 
-  <!-- ── TAB: CADASTRAR ── -->
+  <!-- TAB: CADASTRAR -->
   <div id="panelCadastrar">
     <div class="card">
 
@@ -314,7 +296,6 @@
 
       <hr class="divider">
       <div class="section-label">Mídia</div>
-
       <div class="drop-zone" id="dropZone"
            onclick="document.getElementById('fileInput').click()"
            ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
@@ -328,7 +309,6 @@
         </div>
         <img id="preview" class="preview-img" src="" alt="" style="display:none">
       </div>
-
       <div class="field" style="margin-top:12px">
         <label for="foto">Ou cole uma URL de imagem</label>
         <input id="foto" placeholder="https://exemplo.com/foto.jpg" oninput="onUrlInput()">
@@ -342,7 +322,7 @@
     </div>
   </div>
 
-  <!-- ── TAB: ESTOQUE ── -->
+  <!-- TAB: ESTOQUE -->
   <div id="panelEstoque" style="display:none">
     <div class="card">
       <div class="estoque-header">
@@ -445,9 +425,12 @@
   <span id="toastMsg">Pronto!</span>
 </div>
 
-
+<!-- 
+  ATENÇÃO: Todo o JavaScript de lógica está em logista.js
+  Aqui ficam APENAS as funções de UI puras que não dependem do Supabase
+-->
 <script>
-// ── Cores populares ────────────────────────────────────
+// ── Cores ──────────────────────────────────────────────
 const CORES = [
   { nome: "Branco",            hex: "#f5f5f5" },
   { nome: "Branco Pérola",     hex: "#f0ede8" },
@@ -471,7 +454,7 @@ const CORES = [
   { nome: "Vinho",             hex: "#6b2737" },
 ];
 
-function buildColorGrid(containerId, inputId, deselFn) {
+function buildColorGrid(containerId, inputId) {
   const grid = document.getElementById(containerId);
   grid.innerHTML = "";
   CORES.forEach(c => {
@@ -489,8 +472,8 @@ function buildColorGrid(containerId, inputId, deselFn) {
   });
 }
 
-buildColorGrid("colorGrid",  "cor",  () => {});
-buildColorGrid("colorGridM", "eCor", () => {});
+buildColorGrid("colorGrid",  "cor");
+buildColorGrid("colorGridM", "eCor");
 
 function deselectColor()  { document.querySelectorAll("#colorGrid .color-chip").forEach(x => x.classList.remove("selected")); }
 function deselectColorM() { document.querySelectorAll("#colorGridM .color-chip").forEach(x => x.classList.remove("selected")); }
@@ -501,7 +484,7 @@ function syncColorChip(gridId, nome) {
   });
 }
 
-// ── Máscaras ──────────────────────────────────────────
+// ── Máscaras ───────────────────────────────────────────
 function mascaraPreco(el) {
   let v = el.value.replace(/\D/g, "");
   if (!v) { el.value = ""; return; }
@@ -515,69 +498,54 @@ function mascaraKm(el) {
   el.value = parseInt(v).toLocaleString("pt-BR") + " km";
 }
 
-// ── Banco de marcas ───────────────────────────────────
-let banco = JSON.parse(localStorage.getItem("bancoMarcas")) || {
-  Chevrolet:       { modelos: ["Onix","Onix Plus","Tracker","Spin","Montana","Cruze","Equinox","S10","Blazer","Trailblazer","Cobalt","Prisma","Agile","Celta","Corsa","Meriva","Vectra","Zafira","Captiva"], uso: 0 },
-  Volkswagen:      { modelos: ["Gol","Polo","Polo GTS","T-Cross","Taos","Nivus","Virtus","Voyage","Fox","Golf","Golf GTI","Amarok","Saveiro","Up","SpaceFox","Jetta","Tiguan","Touareg"], uso: 0 },
-  Fiat:            { modelos: ["Pulse","Fastback","Cronos","Argo","Mobi","Uno","Palio","Siena","Grand Siena","Toro","Ducato","Doblo","Linea","Punto","Bravo","Idea","Stilo","500","500X","Freemont"], uso: 0 },
-  Ford:            { modelos: ["Ka","Ka Sedan","EcoSport","Territory","Bronco","Ranger","F-150","Mustang","Maverick","Edge","Explorer","Focus","Fusion","Fiesta","Mondeo"], uso: 0 },
-  Renault:         { modelos: ["Kwid","Sandero","Logan","Duster","Captur","Oroch","Stepway","Fluence","Megane","Clio","Symbol","Master","Kangoo","Zoe"], uso: 0 },
-  Hyundai:         { modelos: ["HB20","HB20S","HB20X","Creta","Tucson","Santa Fe","Ix35","Ioniq 5","Ioniq 6","Azera","Elantra","Sonata","Veloster","Kona"], uso: 0 },
-  Toyota:          { modelos: ["Corolla","Corolla Cross","Hilux","Hilux SW4","Yaris","C-HR","RAV4","Fortuner","Prado","Land Cruiser","Prius","Camry","GR86","Supra"], uso: 0 },
-  Honda:           { modelos: ["Civic","Civic Type R","HR-V","WR-V","CR-V","Fit","City","City Hatch","Accord","Pilot","ZR-V","Odyssey","Jazz"], uso: 0 },
-  Nissan:          { modelos: ["Kicks","Frontier","Versa","March","Sentra","Altima","Murano","Pathfinder","X-Trail","Leaf","GT-R","370Z","Livina"], uso: 0 },
-  Jeep:            { modelos: ["Compass","Renegade","Commander","Wrangler","Gladiator","Grand Cherokee","Cherokee","Avenger"], uso: 0 },
-  BMW:             { modelos: ["118i","120i","125i","M135i","320i","330i","M340i","420i","520i","530i","M550i","740i","X1","X2","X3","X4","X5","X6","X7","M2","M3","M4","M5","iX","i4","i7","Z4"], uso: 0 },
-  "Mercedes-Benz": { modelos: ["A 200","A 250","C 180","C 200","C 300","C 43 AMG","E 200","E 300","S 400","S 500","GLA 200","GLB 200","GLC 200","GLC 300","GLE 400","GLS 450","CLA 200","AMG GT","EQS"], uso: 0 },
-  Audi:            { modelos: ["A1","A3","A3 Sedan","A4","A5","A6","A7","A8","Q2","Q3","Q5","Q7","Q8","TT","R8","e-tron","e-tron GT","RS3","RS5","RS6","S3","S5"], uso: 0 },
-  Volvo:           { modelos: ["XC40","XC60","XC90","S60","S90","V60","V90","C40","EX30","EX90"], uso: 0 },
-  "Land Rover":    { modelos: ["Discovery","Discovery Sport","Defender","Range Rover","Range Rover Sport","Range Rover Evoque","Range Rover Velar","Freelander"], uso: 0 },
-  Porsche:         { modelos: ["911","Cayenne","Macan","Panamera","Taycan","718 Cayman","718 Boxster"], uso: 0 },
-  Jaguar:          { modelos: ["F-Pace","E-Pace","I-Pace","XE","XF","XJ","F-Type"], uso: 0 },
-  Lexus:           { modelos: ["UX","NX","RX","GX","LX","IS","ES","GS","LS","LC"], uso: 0 },
-  Ferrari:         { modelos: ["Roma","Portofino","SF90","296 GTB","F8 Tributo","812 Superfast","Purosangue"], uso: 0 },
-  Lamborghini:     { modelos: ["Urus","Huracan","Revuelto"], uso: 0 },
-  Maserati:        { modelos: ["Ghibli","Quattroporte","Levante","Grecale","GranTurismo"], uso: 0 },
-  Kia:             { modelos: ["Sportage","Sorento","Stinger","Carnival","EV6","Picanto","Cerato","Optima"], uso: 0 },
-  Mitsubishi:      { modelos: ["Eclipse Cross","Outlander","ASX","L200 Triton","Pajero Full","Pajero Sport","Lancer"], uso: 0 },
-  Subaru:          { modelos: ["Forester","Outback","Impreza","WRX","WRX STI","BRZ","Crosstrek"], uso: 0 },
-  Mazda:           { modelos: ["CX-3","CX-5","CX-30","Mazda3","Mazda6","MX-5","CX-60","CX-90"], uso: 0 },
-  Suzuki:          { modelos: ["Vitara","S-Cross","Swift","Jimny","Ignis","Baleno"], uso: 0 },
-  BYD:             { modelos: ["Dolphin","Seal","Atto 3","Han","Tang","Yuan Plus","Shark"], uso: 0 },
-  Tesla:           { modelos: ["Model 3","Model Y","Model S","Model X","Cybertruck","Roadster"], uso: 0 },
-  GWM:             { modelos: ["Haval H6","Haval H2","Haval H1","Ora 03","Tank 300","Tank 500"], uso: 0 },
-  "Caoa Chery":    { modelos: ["Tiggo 5x","Tiggo 7","Tiggo 7 Pro","Tiggo 8","Tiggo 8 Pro","Arrizo 6 Pro"], uso: 0 },
-  Ram:             { modelos: ["700","1000","1500","2500","3500","TRX"], uso: 0 },
-  Citroen:         { modelos: ["C3","C3 Aircross","C4 Cactus","Berlingo","Jumper"], uso: 0 },
-  Peugeot:         { modelos: ["208","2008","3008","5008","508","Partner","Expert","Boxer"], uso: 0 },
+// ── Banco de marcas / autocomplete ─────────────────────
+const banco = {
+  Chevrolet: { modelos: ["Onix","Onix Plus","Tracker","Spin","Montana","Cruze","Equinox","S10","Blazer","Trailblazer"], uso: 0 },
+  Volkswagen: { modelos: ["Gol","Polo","Polo GTS","T-Cross","Taos","Nivus","Virtus","Voyage","Fox","Golf","Amarok","Saveiro"], uso: 0 },
+  Fiat: { modelos: ["Pulse","Fastback","Cronos","Argo","Mobi","Uno","Palio","Siena","Toro","Ducato","Doblo"], uso: 0 },
+  Ford: { modelos: ["Ka","Ka Sedan","EcoSport","Territory","Bronco","Ranger","F-150","Mustang","Maverick","Edge","Explorer"], uso: 0 },
+  Renault: { modelos: ["Kwid","Sandero","Logan","Duster","Captur","Oroch","Stepway","Fluence","Clio","Zoe"], uso: 0 },
+  Hyundai: { modelos: ["HB20","HB20S","HB20X","Creta","Tucson","Santa Fe","Ix35","Ioniq 5","Ioniq 6","Kona"], uso: 0 },
+  Toyota: { modelos: ["Corolla","Corolla Cross","Hilux","Hilux SW4","Yaris","C-HR","RAV4","Land Cruiser","Prius","Supra"], uso: 0 },
+  Honda: { modelos: ["Civic","Civic Type R","HR-V","WR-V","CR-V","Fit","City","City Hatch","Accord","ZR-V"], uso: 0 },
+  Nissan: { modelos: ["Kicks","Frontier","Versa","March","Sentra","Murano","Leaf","GT-R","370Z"], uso: 0 },
+  Jeep: { modelos: ["Compass","Renegade","Commander","Wrangler","Gladiator","Grand Cherokee","Cherokee"], uso: 0 },
+  BMW: { modelos: ["118i","120i","320i","330i","420i","520i","X1","X2","X3","X4","X5","X6","M3","M4","M5","iX","i4"], uso: 0 },
+  "Mercedes-Benz": { modelos: ["A 200","C 180","C 200","C 300","E 200","E 300","S 500","GLA 200","GLC 200","GLC 300","AMG GT"], uso: 0 },
+  Audi: { modelos: ["A3","A3 Sedan","A4","A5","A6","Q3","Q5","Q7","Q8","TT","R8","RS3","RS5","RS6"], uso: 0 },
+  Volvo: { modelos: ["XC40","XC60","XC90","S60","S90","V60","C40","EX30","EX90"], uso: 0 },
+  "Land Rover": { modelos: ["Discovery","Discovery Sport","Defender","Range Rover","Range Rover Sport","Range Rover Evoque"], uso: 0 },
+  Porsche: { modelos: ["911","Cayenne","Macan","Panamera","Taycan","718 Cayman","718 Boxster"], uso: 0 },
+  BYD: { modelos: ["Dolphin","Seal","Atto 3","Han","Tang","Yuan Plus","Shark"], uso: 0 },
+  Tesla: { modelos: ["Model 3","Model Y","Model S","Model X","Cybertruck"], uso: 0 },
+  Kia: { modelos: ["Sportage","Sorento","Stinger","Carnival","EV6","Cerato"], uso: 0 },
+  Mitsubishi: { modelos: ["Eclipse Cross","Outlander","ASX","L200 Triton","Pajero Full","Pajero Sport"], uso: 0 },
+  Ram: { modelos: ["700","1000","1500","2500","3500","TRX"], uso: 0 },
+  Peugeot: { modelos: ["208","2008","3008","5008","508"], uso: 0 },
+  Citroen: { modelos: ["C3","C3 Aircross","C4 Cactus","Berlingo"], uso: 0 },
 };
 
-let focusMarca = -1, focusModelo = -1;
-let focusMarcaM = -1, focusModeloM = -1;
+let focusMarca = -1, focusModelo = -1, focusMarcaM = -1, focusModeloM = -1;
 
-// ── Autocomplete ──────────────────────────────────────
-function sugerirMarca() { renderAC(Object.keys(banco).filter(m => m.toLowerCase().includes(document.getElementById("marca").value.toLowerCase())).sort((a,b)=>banco[b].uso-banco[a].uso), "sugMarca", "marca", false); }
-function sugerirModelo() { const m = document.getElementById("marca").value; if (!banco[m]) { document.getElementById("sugModelo").style.display="none"; return; } renderAC(banco[m].modelos.filter(x=>x.toLowerCase().includes(document.getElementById("modelo").value.toLowerCase())), "sugModelo", "modelo", false); }
-function sugerirMarcaM() { renderAC(Object.keys(banco).filter(m => m.toLowerCase().includes(document.getElementById("eMarca").value.toLowerCase())).sort((a,b)=>banco[b].uso-banco[a].uso), "sugMarcaM", "eMarca", true); }
-function sugerirModeloM() { const m = document.getElementById("eMarca").value; if (!banco[m]) { document.getElementById("sugModeloM").style.display="none"; return; } renderAC(banco[m].modelos.filter(x=>x.toLowerCase().includes(document.getElementById("eModelo").value.toLowerCase())), "sugModeloM", "eModelo", true); }
+function sugerirMarca()  { renderAC(Object.keys(banco).filter(m => m.toLowerCase().includes(document.getElementById("marca").value.toLowerCase())).sort((a,b)=>banco[b].uso-banco[a].uso), "sugMarca", "marca"); }
+function sugerirModelo() { const m = document.getElementById("marca").value; if (!banco[m]) { document.getElementById("sugModelo").style.display="none"; return; } renderAC(banco[m].modelos.filter(x=>x.toLowerCase().includes(document.getElementById("modelo").value.toLowerCase())), "sugModelo", "modelo"); }
+function sugerirMarcaM() { renderAC(Object.keys(banco).filter(m => m.toLowerCase().includes(document.getElementById("eMarca").value.toLowerCase())).sort((a,b)=>banco[b].uso-banco[a].uso), "sugMarcaM", "eMarca"); }
+function sugerirModeloM(){ const m = document.getElementById("eMarca").value; if (!banco[m]) { document.getElementById("sugModeloM").style.display="none"; return; } renderAC(banco[m].modelos.filter(x=>x.toLowerCase().includes(document.getElementById("eModelo").value.toLowerCase())), "sugModeloM", "eModelo"); }
 
-function renderAC(lista, boxId, inputId, isModal) {
+function renderAC(lista, boxId, inputId) {
   const box = document.getElementById(boxId);
   if (!lista.length) { box.style.display="none"; return; }
   box.innerHTML = lista.map(item =>
-    `<div onclick="selectAC(this)" data-val="${item.replace(/"/g,'&quot;')}" data-input="${inputId}" data-modal="${isModal}">${item}</div>`
+    `<div onclick="selectAC(this)" data-val="${item.replace(/"/g,'&quot;')}" data-input="${inputId}">${item}</div>`
   ).join("");
   box.style.display = "block";
 }
 
 function selectAC(el) {
-  const val = el.dataset.val;
-  const inputId = el.dataset.input;
-  document.getElementById(inputId).value = val;
+  document.getElementById(el.dataset.input).value = el.dataset.val;
   el.closest(".suggestions").style.display = "none";
-  // if marca field, clear and trigger modelo
-  if (inputId === "marca") { document.getElementById("modelo").value = ""; sugerirModelo(); }
-  if (inputId === "eMarca") { document.getElementById("eModelo").value = ""; sugerirModeloM(); }
+  if (el.dataset.input === "marca")  { document.getElementById("modelo").value = ""; sugerirModelo(); }
+  if (el.dataset.input === "eMarca") { document.getElementById("eModelo").value = ""; sugerirModeloM(); }
 }
 
 document.addEventListener("keydown", e => {
@@ -588,22 +556,20 @@ document.addEventListener("keydown", e => {
   if (!box || box.style.display==="none") return;
   const itens = box.querySelectorAll("div");
   if (!itens.length) return;
-  const isMarca = ativo === "marca" || ativo === "eMarca";
-  const isModal = ativo === "eMarca" || ativo === "eModelo";
+  const isMarca = ativo==="marca"||ativo==="eMarca", isModal = ativo==="eMarca"||ativo==="eModelo";
   let focus = isModal ? (isMarca ? focusMarcaM : focusModeloM) : (isMarca ? focusMarca : focusModelo);
-  if (e.key==="ArrowDown")      { e.preventDefault(); focus=(focus+1)%itens.length; }
-  else if (e.key==="ArrowUp")   { e.preventDefault(); focus=(focus-1+itens.length)%itens.length; }
-  else if (e.key==="Enter" && focus>=0) { itens[focus].click(); return; }
+  if (e.key==="ArrowDown") { e.preventDefault(); focus=(focus+1)%itens.length; }
+  else if (e.key==="ArrowUp") { e.preventDefault(); focus=(focus-1+itens.length)%itens.length; }
+  else if (e.key==="Enter"&&focus>=0) { itens[focus].click(); return; }
   else return;
-  if (isModal) { if (isMarca) focusMarcaM=focus; else focusModeloM=focus; }
-  else         { if (isMarca) focusMarca=focus;  else focusModelo=focus; }
-  itens.forEach((x,i) => x.classList.toggle("active", i===focus));
+  if (isModal) { if(isMarca) focusMarcaM=focus; else focusModeloM=focus; }
+  else         { if(isMarca) focusMarca=focus;  else focusModelo=focus; }
+  itens.forEach((x,i)=>x.classList.toggle("active",i===focus));
 });
 
 document.addEventListener("click", e => {
-  if (!e.target.closest(".field") && !e.target.closest(".drop-zone")) {
-    ["sugMarca","sugModelo","sugMarcaM","sugModeloM"].forEach(id => { const el = document.getElementById(id); if(el) el.style.display="none"; });
-  }
+  if (!e.target.closest(".field") && !e.target.closest(".drop-zone"))
+    ["sugMarca","sugModelo","sugMarcaM","sugModeloM"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});
 });
 
 // ── Toast ──────────────────────────────────────────────
@@ -616,7 +582,7 @@ function showToast(msg, isError=false) {
   setTimeout(() => t.classList.remove("show"), 3000);
 }
 
-// ── Tabs ──────────────────────────────────────────────
+// ── Tabs ───────────────────────────────────────────────
 function setTab(tab) {
   document.getElementById("panelCadastrar").style.display = tab==="cadastrar" ? "block" : "none";
   document.getElementById("panelEstoque").style.display   = tab==="estoque"   ? "block" : "none";
@@ -625,70 +591,30 @@ function setTab(tab) {
   if (tab==="estoque") renderEstoque();
 }
 
-function updateBadge() {
-  const n = (JSON.parse(localStorage.getItem("cars"))||[]).length;
-  document.getElementById("tabBadge").textContent = n;
-}
-updateBadge();
-
-// ── Estoque render ────────────────────────────────────
-async function renderEstoque(){
-
-const { data, error } = await supabase
-.from("cars")
-.select("*")
-
-if(error){
-console.log(error)
-return
-}
-
-const carros = data || []
-
-const container = document.getElementById("carList")
-
-if(!carros.length){
-container.innerHTML = `<div class="empty-estoque">Nenhum veículo encontrado.</div>`
-return
-}
-
-container.innerHTML = carros.map(c => `
-<div class="car-row">
-<div class="car-info">
-<div class="car-name">${c.marca} ${c.modelo}</div>
-<div class="car-meta">${c.ano || ""}</div>
-</div>
-</div>
-`).join("")
-
-}
-
-// ── Foto handling (cadastro) ──────────────────────────
+// ── Foto (cadastro) ────────────────────────────────────
 let fotoData = "";
-
 function setPreview(src) {
   fotoData = src;
-  const p = document.getElementById("preview"), d = document.getElementById("dropIdle"), z = document.getElementById("dropZone");
-  const old = z.querySelector(".preview-clear"); if(old) old.remove();
-  if (src) { p.src=src; p.style.display="block"; d.style.display="none"; addClear(z,clearPreview); }
-  else      { p.style.display="none"; p.src=""; d.style.display="block"; }
+  const p=document.getElementById("preview"), d=document.getElementById("dropIdle"), z=document.getElementById("dropZone");
+  const old=z.querySelector(".preview-clear"); if(old) old.remove();
+  if(src){ p.src=src; p.style.display="block"; d.style.display="none"; addClear(z,clearPreview); }
+  else   { p.style.display="none"; p.src=""; d.style.display="block"; }
 }
 function clearPreview() { fotoData=""; document.getElementById("foto").value=""; setPreview(""); }
-function addClear(zone, fn) {
+function addClear(zone,fn) {
   const btn=document.createElement("div"); btn.className="preview-clear"; btn.title="Remover foto";
   btn.innerHTML=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
   btn.onclick=ev=>{ev.stopPropagation();fn();}; zone.appendChild(btn);
 }
-function loadFile(file, cb) { if(!file||!file.type.startsWith("image/")) return; const r=new FileReader(); r.onload=e=>cb(e.target.result); r.readAsDataURL(file); }
-function onFileSelect(e) { loadFile(e.target.files[0], setPreview); }
-function onDragOver(e)   { e.preventDefault(); document.getElementById("dropZone").classList.add("dragover"); }
-function onDragLeave()   { document.getElementById("dropZone").classList.remove("dragover"); }
-function onDrop(e) { e.preventDefault(); document.getElementById("dropZone").classList.remove("dragover"); const f=e.dataTransfer.files[0]; if(f){loadFile(f,setPreview);return;} const url=e.dataTransfer.getData("text/plain"); if(url){document.getElementById("foto").value=url;setPreview(url);} }
-function onUrlInput() { const url=document.getElementById("foto").value.trim(); if(url)setPreview(url); else clearPreview(); }
+function loadFile(file,cb){ if(!file||!file.type.startsWith("image/")) return; const r=new FileReader(); r.onload=e=>cb(e.target.result); r.readAsDataURL(file); }
+function onFileSelect(e)  { loadFile(e.target.files[0],setPreview); }
+function onDragOver(e)    { e.preventDefault(); document.getElementById("dropZone").classList.add("dragover"); }
+function onDragLeave()    { document.getElementById("dropZone").classList.remove("dragover"); }
+function onDrop(e)        { e.preventDefault(); document.getElementById("dropZone").classList.remove("dragover"); const f=e.dataTransfer.files[0]; if(f){loadFile(f,setPreview);return;} const url=e.dataTransfer.getData("text/plain"); if(url){document.getElementById("foto").value=url;setPreview(url);} }
+function onUrlInput()     { const url=document.getElementById("foto").value.trim(); if(url)setPreview(url); else clearPreview(); }
 
-// ── Foto handling (modal) ─────────────────────────────
+// ── Foto (modal) ───────────────────────────────────────
 let fotoDataM = "";
-
 function setPreviewM(src) {
   fotoDataM = src;
   const p=document.getElementById("previewM"), d=document.getElementById("dropIdleM"), z=document.getElementById("dropZoneM");
@@ -696,146 +622,39 @@ function setPreviewM(src) {
   if(src){ p.src=src; p.style.display="block"; d.style.display="none"; addClear(z,clearPreviewM); }
   else   { p.style.display="none"; p.src=""; d.style.display="block"; }
 }
-function clearPreviewM() { fotoDataM=""; document.getElementById("eFoto").value=""; setPreviewM(""); }
-function onFileSelectM(e) { loadFile(e.target.files[0], setPreviewM); }
+function clearPreviewM()  { fotoDataM=""; document.getElementById("eFoto").value=""; setPreviewM(""); }
+function onFileSelectM(e) { loadFile(e.target.files[0],setPreviewM); }
 function onDragOverM(e)   { e.preventDefault(); document.getElementById("dropZoneM").classList.add("dragover"); }
 function onDragLeaveM()   { document.getElementById("dropZoneM").classList.remove("dragover"); }
-function onDropM(e) { e.preventDefault(); document.getElementById("dropZoneM").classList.remove("dragover"); const f=e.dataTransfer.files[0]; if(f){loadFile(f,setPreviewM);return;} const url=e.dataTransfer.getData("text/plain"); if(url){document.getElementById("eFoto").value=url;setPreviewM(url);} }
-function onUrlInputM() { const url=document.getElementById("eFoto").value.trim(); if(url)setPreviewM(url); else clearPreviewM(); }
+function onDropM(e)       { e.preventDefault(); document.getElementById("dropZoneM").classList.remove("dragover"); const f=e.dataTransfer.files[0]; if(f){loadFile(f,setPreviewM);return;} const url=e.dataTransfer.getData("text/plain"); if(url){document.getElementById("eFoto").value=url;setPreviewM(url);} }
+function onUrlInputM()    { const url=document.getElementById("eFoto").value.trim(); if(url)setPreviewM(url); else clearPreviewM(); }
 
-// Paste for both zones
 document.addEventListener("paste", e => {
-  const items = e.clipboardData?.items; if(!items) return;
-  for(const item of items) {
-    if(item.type.startsWith("image/")) {
-      const isModal = document.getElementById("modalOverlay").classList.contains("open");
-      loadFile(item.getAsFile(), isModal ? setPreviewM : setPreview);
-      return;
+  const items=e.clipboardData?.items; if(!items) return;
+  for(const item of items){
+    if(item.type.startsWith("image/")){
+      const isModal=document.getElementById("modalOverlay").classList.contains("open");
+      loadFile(item.getAsFile(), isModal?setPreviewM:setPreview); return;
     }
   }
 });
 
-
-
-// ── Salvar (novo) ─────────────────────────────────────
-async function salvar(){
-
-const marca = document.getElementById("marca").value.trim()
-const modelo = document.getElementById("modelo").value.trim()
-
-const { error } = await supabase
-.from("cars")
-.insert({
-marca: marca,
-modelo: modelo,
-ano: document.getElementById("ano").value.trim(),
-preco: document.getElementById("preco").value.trim(),
-km: document.getElementById("km").value.trim(),
-cor: document.getElementById("cor").value.trim(),
-foto: fotoData || document.getElementById("foto").value.trim(),
-combustivel: document.getElementById("combustivel").value,
-cambio: document.getElementById("cambio").value,
-portas: document.getElementById("portas").value
-})
-
-if(error){
-console.log(error)
-showToast("Erro ao salvar", true)
-return
-}
-
-showToast("Salvo no banco 🔥")
-}
-// ── Modal EDITAR ──────────────────────────────────────
-let editIdx = -1;
-
-function abrirEdicao(idx) {
-  editIdx = idx;
-  const carros = JSON.parse(localStorage.getItem("cars"))||[];
-  const c = carros[idx]; if(!c) return;
-
-  document.getElementById("eMarca").value       = c.marca || "";
-  document.getElementById("eModelo").value      = c.modelo || "";
-  document.getElementById("eAno").value         = c.ano || "";
-  document.getElementById("eCor").value         = c.cor || "";
-  document.getElementById("ePreco").value       = c.preco || "";
-  document.getElementById("eKm").value          = c.km || "";
-  document.getElementById("eFoto").value        = c.foto && !c.foto.startsWith("data:") ? c.foto : "";
-  document.getElementById("eCombustivel").value = c.combustivel || "Flex";
-  document.getElementById("eCambio").value      = c.cambio || "Automático";
-  document.getElementById("ePortas").value      = c.portas || "";
-
-  syncColorChip("colorGridM", c.cor || "");
-  setPreviewM(c.foto || "");
-
-  document.getElementById("modalOverlay").classList.add("open");
-  document.body.style.overflow = "hidden";
-}
-
+// ── Modal / Confirm (UI apenas — lógica no logista.js) ─
 function fecharModal() {
   document.getElementById("modalOverlay").classList.remove("open");
   document.body.style.overflow = "";
-  editIdx = -1;
 }
-
-function salvarEdicao() {
-  if (editIdx < 0) return;
-  const carros = JSON.parse(localStorage.getItem("cars"))||[];
-  carros[editIdx] = {
-    ...carros[editIdx],
-    marca:       document.getElementById("eMarca").value.trim(),
-    modelo:      document.getElementById("eModelo").value.trim(),
-    ano:         document.getElementById("eAno").value.trim(),
-    cor:         document.getElementById("eCor").value.trim(),
-    preco:       document.getElementById("ePreco").value.trim(),
-    km:          document.getElementById("eKm").value.trim(),
-    foto:        fotoDataM || document.getElementById("eFoto").value.trim() || carros[editIdx].foto,
-    combustivel: document.getElementById("eCombustivel").value,
-    cambio:      document.getElementById("eCambio").value,
-    portas:      document.getElementById("ePortas").value,
-  };
-  localStorage.setItem("cars", JSON.stringify(carros));
-  fecharModal();
-  renderEstoque();
-  showToast("Veículo atualizado!");
-}
-
-// ── Exclusão ──────────────────────────────────────────
-let deleteIdx = -1;
-
-function pedirExclusao(idx) {
-  deleteIdx = idx;
-  const carros = JSON.parse(localStorage.getItem("cars"))||[];
-  const c = carros[idx];
-  document.getElementById("confirmDesc").textContent =
-    c ? `Excluir ${c.marca} ${c.modelo} ${c.ano||""}? Esta ação não pode ser desfeita.` : "Esta ação não pode ser desfeita.";
-  document.getElementById("confirmOverlay").classList.add("open");
-  document.body.style.overflow = "hidden";
-}
-
 function fecharConfirm() {
   document.getElementById("confirmOverlay").classList.remove("open");
   document.body.style.overflow = "";
-  deleteIdx = -1;
 }
 
-function confirmarExclusao() {
-  if (deleteIdx < 0) return;
-  const carros = JSON.parse(localStorage.getItem("cars"))||[];
-  carros.splice(deleteIdx, 1);
-  localStorage.setItem("cars", JSON.stringify(carros));
-  fecharConfirm();
-  updateBadge();
-  renderEstoque();
-  showToast("Veículo excluído.");
-}
-
-// Close modal on overlay click
-document.getElementById("modalOverlay").addEventListener("click", e => { if(e.target===e.currentTarget) fecharModal(); });
-document.getElementById("confirmOverlay").addEventListener("click", e => { if(e.target===e.currentTarget) fecharConfirm(); });
-document.addEventListener("keydown", e => { if(e.key==="Escape"){ fecharModal(); fecharConfirm(); } });
-
+document.getElementById("modalOverlay").addEventListener("click", e=>{if(e.target===e.currentTarget)fecharModal();});
+document.getElementById("confirmOverlay").addEventListener("click", e=>{if(e.target===e.currentTarget)fecharConfirm();});
+document.addEventListener("keydown", e=>{if(e.key==="Escape"){fecharModal();fecharConfirm();}});
 </script>
+
+<!-- Supabase SDK deve vir ANTES do logista.js -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="logista.js"></script>
 </body>
