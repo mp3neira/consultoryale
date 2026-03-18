@@ -3,7 +3,7 @@ const supabaseClient = window.supabase.createClient(
 "sb_publishable_5hludyQvVRcmToSqw6EnnQ_M4N29FcE"
 )
 
-async function carregarCarros(){
+async function carregarCars(){
 
 const { data, error } = await supabaseClient
 .from("cars")
@@ -14,9 +14,9 @@ console.log(error)
 return
 }
 
-carros = data
+cars = data
 filtrar()
 
 }
 
-carregarCarros()
+carregarCars()
