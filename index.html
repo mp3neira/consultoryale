@@ -352,6 +352,7 @@
 
 <script>
 const WHATSAPP = "5547999064574";
+let carros = [];
 
 function precoNum(str) {
   if (!str) return 0;
@@ -437,10 +438,6 @@ function limparFiltros() {
   document.getElementById("clearBtn").classList.remove("visible");
   filtrar();
 }
-
-// Initial render
-filtrar();
-
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

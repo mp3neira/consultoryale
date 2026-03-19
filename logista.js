@@ -1,6 +1,6 @@
-const supabase = window.supabase.createClient(
-  "https://ymcjkioychfjgfexqaps.supabase.co",
-  "sb_publishable_5hludyQvVRcmToSqw6EnnQ_M4N29FcE"
+var supabase = window.supabase.createClient(
+  "https://apnlrxcmdkhwixtnfekg.supabase.co",
+  "sb_publishable_qtx6d8pZf39dCNFXKscTRA_bD1pFcrN"
 );
 
 // ── Salvar novo veículo ────────────────────────────────

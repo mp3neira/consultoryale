@@ -1,6 +1,6 @@
 const supabaseClient = window.supabase.createClient(
-  "https://ymcjkioychfjgfexqaps.supabase.co",
-  "sb_publishable_5hludyQvVRcmToSqw6EnnQ_M4N29FcE"
+  "https://apnlrxcmdkhwixtnfekg.supabase.co",
+  "sb_publishable_qtx6d8pZf39dCNFXKscTRA_bD1pFcrN"
 );
 
 async function carregarCars() {
