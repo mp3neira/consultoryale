@@ -286,7 +286,7 @@ nav {
 .cta-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; opacity: 0.8; }
 .cta-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(26px, 3.5vw, 40px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 14px; }
 .cta-title em { font-style: italic; color: var(--gold); }
-.cta-desc { font-size: 14px; color: var(--muted); font-weight: 300; line-height: 1.7; max-width: 480px; }
+.cta-descricao { font-size: 14px; color: var(--muted); font-weight: 300; line-height: 1.7; max-width: 480px; }
 
 .cta-buttons { display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
 
@@ -318,7 +318,7 @@ nav {
 .feature { background: var(--surface); padding: 28px 24px; transition: background var(--transition); }
 .feature-icon { font-size: 22px; margin-bottom: 10px; }
 .feature-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-.feature-desc { font-size: 12px; color: var(--muted); font-weight: 300; line-height: 1.6; }
+.feature-descricao { font-size: 12px; color: var(--muted); font-weight: 300; line-height: 1.6; }
 
 /* Footer */
 .site-footer {
@@ -427,8 +427,8 @@ nav {
   <select class="filter-select" id="filterOrdem" onchange="filtrar()">
     <option value="">Ordenar por</option>
     <option value="preco_asc">Menor preço</option>
-    <option value="preco_desc">Maior preço</option>
-    <option value="ano_desc">Mais novo</option>
+    <option value="preco_descricao">Maior preço</option>
+    <option value="ano_descricao">Mais novo</option>
     <option value="ano_asc">Mais antigo</option>
     <option value="km_asc">Menor KM</option>
   </select>
@@ -451,7 +451,7 @@ nav {
   <select class="filter-select" id="filterOrdemImovel" onchange="filtrarImoveis()">
     <option value="">Ordenar por</option>
     <option value="preco_asc">Menor preço</option>
-    <option value="preco_desc">Maior preço</option>
+    <option value="preco_descricao">Maior preço</option>
   </select>
   <button class="search-clear" id="clearBtnImovel" onclick="limparFiltrosImoveis()">Limpar</button>
 </div>
@@ -467,7 +467,7 @@ nav {
     <div>
       <div class="cta-eyebrow">Atendimento personalizado</div>
       <h2 class="cta-title">Atendemos você<br><em>do jeito certo</em></h2>
-      <p class="cta-desc">Quer tirar uma dúvida, negociar ou só saber mais sobre algum veículo ou imóvel? O Yale está pronto para te atender com atenção, transparência e sem enrolação.</p>
+      <p class="cta-descricao">Quer tirar uma dúvida, negociar ou só saber mais sobre algum veículo ou imóvel? O Yale está pronto para te atender com atenção, transparência e sem enrolação.</p>
     </div>
     <div class="cta-buttons">
       <a class="cta-btn-wa" href="https://api.whatsapp.com/send/?phone=5547999064574&text&type=phone_number&app_absent=0" target="_blank">
@@ -483,9 +483,9 @@ nav {
 </div>
 
 <div class="features">
-  <div class="feature"><div class="feature-icon">🔍</div><div class="feature-title">Transparência total</div><div class="feature-desc">Todas as informações do imóvel ou veículo disponíveis antes mesmo de você perguntar.</div></div>
-  <div class="feature"><div class="feature-icon">🤝</div><div class="feature-title">Negociação sem enrolação</div><div class="feature-desc">Atendimento direto com o responsável. Sem intermediários, sem surpresas.</div></div>
-  <div class="feature"><div class="feature-icon">📍</div><div class="feature-title">Atendimento local</div><div class="feature-desc">Baseado em Santa Catarina, atendendo toda a região com agilidade e confiança.</div></div>
+  <div class="feature"><div class="feature-icon">🔍</div><div class="feature-title">Transparência total</div><div class="feature-descricao">Todas as informações do imóvel ou veículo disponíveis antes mesmo de você perguntar.</div></div>
+  <div class="feature"><div class="feature-icon">🤝</div><div class="feature-title">Negociação sem enrolação</div><div class="feature-descricao">Atendimento direto com o responsável. Sem intermediários, sem surpresas.</div></div>
+  <div class="feature"><div class="feature-icon">📍</div><div class="feature-title">Atendimento local</div><div class="feature-descricao">Baseado em Santa Catarina, atendendo toda a região com agilidade e confiança.</div></div>
 </div>
 
 <footer class="site-footer">
@@ -578,8 +578,8 @@ function filtrar() {
   );
   if (marca) resultado = resultado.filter(c => c.marca === marca);
   if (ordem === "preco_asc") resultado.sort((a, b) => precoNum(a.preco) - precoNum(b.preco));
-  if (ordem === "preco_desc") resultado.sort((a, b) => precoNum(b.preco) - precoNum(a.preco));
-  if (ordem === "ano_desc") resultado.sort((a, b) => (b.ano || 0) - (a.ano || 0));
+  if (ordem === "preco_descricao") resultado.sort((a, b) => precoNum(b.preco) - precoNum(a.preco));
+  if (ordem === "ano_descricao") resultado.sort((a, b) => (b.ano || 0) - (a.ano || 0));
   if (ordem === "ano_asc") resultado.sort((a, b) => (a.ano || 0) - (b.ano || 0));
   if (ordem === "km_asc") resultado.sort((a, b) => kmNum(a.km) - kmNum(b.km));
 
@@ -645,12 +645,12 @@ function filtrarImoveis() {
 
   let resultado = [...imoveis];
   if (termo) resultado = resultado.filter(i =>
-    [i.titulo, i.tipo, i.bairro, i.cidade, i.desc]
+    [i.titulo, i.tipo, i.bairro, i.cidade, i.descricao]
       .some(v => v && v.toLowerCase().includes(termo))
   );
   if (tipo) resultado = resultado.filter(i => i.tipo === tipo);
   if (ordem === "preco_asc") resultado.sort((a, b) => precoNum(a.preco) - precoNum(b.preco));
-  if (ordem === "preco_desc") resultado.sort((a, b) => precoNum(b.preco) - precoNum(a.preco));
+  if (ordem === "preco_descricao") resultado.sort((a, b) => precoNum(b.preco) - precoNum(a.preco));
 
   renderListaImoveis(resultado);
 }

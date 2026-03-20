@@ -14,23 +14,36 @@ async function carregarCars() {
     return;
   }
 
-  // Popula o array global usado pelo HTML
   carros = data || [];
 
-  // Monta o filtro de marcas com os dados reais
   const sel = document.getElementById("filterMarca");
-  // Remove opções antigas (mantém só a primeira "Todas as marcas")
-  while (sel.options.length > 1) sel.remove(1);
+  if (sel) {
+    while (sel.options.length > 1) sel.remove(1);
+    const marcas = [...new Set(carros.map(c => c.marca).filter(Boolean))].sort();
+    marcas.forEach(m => {
+      const o = document.createElement("option");
+      o.value = m;
+      o.textContent = m;
+      sel.appendChild(o);
+    });
+  }
 
-  const marcas = [...new Set(carros.map(c => c.marca).filter(Boolean))].sort();
-  marcas.forEach(m => {
-    const o = document.createElement("option");
-    o.value = m;
-    o.textContent = m;
-    sel.appendChild(o);
-  });
+  if (typeof filtrar === 'function') filtrar();
+}
 
-  filtrar();
+async function carregarImoveis() {
+  const { data, error } = await supabaseClient
+    .from("imoveis")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao carregar imóveis:", error);
+    return;
+  }
+
+  imoveis = data || [];
 }
 
 carregarCars();
+carregarImoveis();

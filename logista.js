@@ -54,7 +54,14 @@
     if (error) { console.error(error); return; }
     carros = data || [];
     atualizarBadge();
-    if (document.getElementById('panelEstoque').style.display !== 'none') renderEstoque();
+    // Popula filtro de marcas na home (só existe no index.html, ignora se não existir)
+    const sel = document.getElementById('filterMarca');
+    if (sel) {
+      while (sel.options.length > 1) sel.remove(1);
+      const marcas = [...new Set(carros.map(c => c.marca).filter(Boolean))].sort();
+      marcas.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
+    }
+    if (document.getElementById('panelEstoque')?.style.display !== 'none') renderEstoque();
   }
 
   async function carregarImoveis() {
@@ -120,17 +127,18 @@
 
     const fotos = await uploadFotos(files);
 
+    const gIm = id => document.getElementById(id)?.value?.trim() || null;
     const obj = {
       titulo,
-      tipo:      document.getElementById('im_tipo').value,
-      bairro:    document.getElementById('im_bairro').value.trim() || null,
-      cidade:    document.getElementById('im_cidade').value.trim() || null,
-      area:      document.getElementById('im_area').value.trim() || null,
-      quartos:   document.getElementById('im_quartos').value || null,
-      banheiros: document.getElementById('im_banheiros').value || null,
-      vagas:     document.getElementById('im_vagas').value.trim() || null,
-      preco:     document.getElementById('im_preco').value.trim() || null,
-      desc:      document.getElementById('im_desc').value.trim() || null,
+      tipo:      document.getElementById('im_tipo')?.value || null,
+      bairro:    gIm('im_bairro'),
+      cidade:    gIm('im_cidade'),
+      area:      gIm('im_area'),
+      quartos:   document.getElementById('im_quartos')?.value || null,
+      banheiros: document.getElementById('im_banheiros')?.value || null,
+      vagas:     gIm('im_vagas'),
+      preco:     gIm('im_preco'),
+      descricao: gIm('im_descricao'),
       fotos,
       foto: fotos[0] || null,
     };
@@ -189,7 +197,7 @@
     document.getElementById('eImBanheiros').value = im.banheiros || '';
     document.getElementById('eImVagas').value     = im.vagas || '';
     document.getElementById('eImPreco').value     = im.preco || '';
-    document.getElementById('eImDesc').value      = im.desc || '';
+    document.getElementById('eImdescricao').value = im.descricao || '';
 
     mostrarFotosExistentes('modal_imovel', im.fotos || (im.foto ? [im.foto] : []));
     if (window.fotoFilesMap) window.fotoFilesMap.modal_imovel = [];
@@ -278,17 +286,18 @@
       fotos = window._fotosExistentes_modal_imovel || [];
     }
 
+    const gEIm = id => document.getElementById(id)?.value?.trim() || null;
     const obj = {
-      titulo:    document.getElementById('eImTitulo').value.trim(),
-      tipo:      document.getElementById('eImTipo').value,
-      bairro:    document.getElementById('eImBairro').value.trim() || null,
-      cidade:    document.getElementById('eImCidade').value.trim() || null,
-      area:      document.getElementById('eImArea').value.trim() || null,
-      quartos:   document.getElementById('eImQuartos').value || null,
-      banheiros: document.getElementById('eImBanheiros').value || null,
-      vagas:     document.getElementById('eImVagas').value.trim() || null,
-      preco:     document.getElementById('eImPreco').value.trim() || null,
-      desc:      document.getElementById('eImDesc').value.trim() || null,
+      titulo:    gEIm('eImTitulo') || '',
+      tipo:      document.getElementById('eImTipo')?.value || null,
+      bairro:    gEIm('eImBairro'),
+      cidade:    gEIm('eImCidade'),
+      area:      gEIm('eImArea'),
+      quartos:   document.getElementById('eImQuartos')?.value || null,
+      banheiros: document.getElementById('eImBanheiros')?.value || null,
+      vagas:     gEIm('eImVagas'),
+      preco:     gEIm('eImPreco'),
+      descricao: gEIm('eImdescricao'),
       fotos, foto: fotos[0] || null,
     };
 
@@ -305,7 +314,7 @@
   window.pedirExclusao = function(id, tipo, nome) {
     deletandoId   = id;
     deletandoTipo = tipo;
-    const desc = document.getElementById('confirmDesc');
+    const desc = document.getElementById('confirmdescricao');
     if (desc) desc.textContent = `Excluir "${nome}"? Esta ação não pode ser desfeita.`;
     document.getElementById('confirmOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -386,7 +395,7 @@
   }
 
   function limparFormImovel() {
-    ['im_titulo','im_bairro','im_cidade','im_area','im_vagas','im_preco','im_desc'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    ['im_titulo','im_bairro','im_cidade','im_area','im_vagas','im_preco','im_descricao'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
     if (window.fotoFilesMap) { window.fotoFilesMap.imovel = []; if (typeof renderPreviews === 'function') renderPreviews('imovel'); }
   }
 
