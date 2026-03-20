@@ -213,7 +213,7 @@ body::before {
 .confirm-overlay.open .confirm-box { transform: scale(1); }
 .confirm-icon { font-size: 36px; margin-bottom: 16px; }
 .confirm-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-.confirm-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+.confirm-descricao { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
 .confirm-btns { display: flex; gap: 10px; }
 .confirm-cancel { flex: 1; padding: 12px; background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--muted); font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
 .confirm-cancel:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
@@ -381,7 +381,7 @@ function toggleTheme() {
           </div>
           <div class="field"><label for="im_vagas">Vagas</label><input id="im_vagas" placeholder="Ex: 2"></div>
           <div class="field"><label for="im_preco">Preço</label><input id="im_preco" placeholder="R$ 0,00" oninput="mascaraPreco(this)"></div>
-          <div class="field grid-full"><label for="im_desc">Descrição</label><textarea id="im_desc" placeholder="Descreva o imóvel, diferenciais, localização…"></textarea></div>
+          <div class="field grid-full"><label for="im_descricao">Descrição</label><textarea id="im_descricao" placeholder="Descreva o imóvel, diferenciais, localização…"></textarea></div>
         </div>
 
         <hr class="divider">
@@ -512,7 +512,7 @@ function toggleTheme() {
         </div>
         <div class="field"><label for="eImVagas">Vagas</label><input id="eImVagas"></div>
         <div class="field"><label for="eImPreco">Preço</label><input id="eImPreco" oninput="mascaraPreco(this)"></div>
-        <div class="field grid-full"><label for="eImDesc">Descrição</label><textarea id="eImDesc"></textarea></div>
+        <div class="field grid-full"><label for="eImdescricao">Descrição</label><textarea id="eImdescricao"></textarea></div>
       </div>
       <div class="section-label">Fotos (até 5)</div>
       <p class="foto-label-hint">A <span>primeira</span> foto será a capa. Fotos novas substituem as anteriores.</p>
@@ -543,7 +543,7 @@ function toggleTheme() {
   <div class="confirm-box">
     <div class="confirm-icon">🗑️</div>
     <div class="confirm-title">Excluir item?</div>
-    <p class="confirm-desc" id="confirmDesc">Esta ação não pode ser desfeita.</p>
+    <p class="confirm-descricao" id="confirmDesc">Esta ação não pode ser desfeita.</p>
     <div class="confirm-btns">
       <button class="confirm-cancel" onclick="fecharConfirm()">Cancelar</button>
       <button class="confirm-delete" onclick="confirmarExclusao()">Excluir</button>
