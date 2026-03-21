@@ -1,11 +1,10 @@
 // detalhes.js — carrega veículo ou imóvel pelo localStorage e renderiza a página
 
 (async () => {
-  if (typeof supabase === 'undefined') { console.error('supabase.js não carregado'); return; }
+  if (typeof supabaseClient === 'undefined') { console.error('supabaseClient não carregado'); return; }
 
   const WHATSAPP = "5547999064574";
 
-  // Lê o item selecionado — suporta formato novo {tipo, id} e legado (número)
   let tipo = 'veiculo';
   let itemId = null;
   try {
@@ -15,7 +14,6 @@
       tipo   = parsed.tipo || 'veiculo';
       itemId = parsed.id;
     } else {
-      // Compatibilidade com formato antigo (índice numérico)
       itemId = localStorage.getItem('carroSelecionado');
       tipo   = 'veiculo';
     }
@@ -25,26 +23,19 @@
   }
 
   const root = document.getElementById('root');
-
   if (!itemId) { renderErro(root); return; }
 
-  // Buscar no Supabase
-  const tabela = tipo === 'imovel' ? 'imoveis' : 'carros';
-  const { data, error } = await supabase.from(tabela).select('*').eq('id', itemId).single();
+  const tabela = tipo === 'imovel' ? 'imoveis' : 'cars';
+  const { data, error } = await supabaseClient.from(tabela).select('*').eq('id', itemId).single();
   if (error || !data) { renderErro(root); return; }
 
   if (tipo === 'imovel') renderImovel(root, data);
   else renderVeiculo(root, data);
 
-  // Aplicar tema salvo
   const theme = localStorage.getItem('theme') || 'dark';
   document.documentElement.setAttribute('data-theme', theme);
-
 })();
 
-// ══════════════════════════════════════════════════════
-// RENDER VEÍCULO
-// ══════════════════════════════════════════════════════
 function renderVeiculo(root, c) {
   const WHATSAPP = "5547999064574";
   const fotos = (c.fotos && c.fotos.length) ? c.fotos : (c.foto ? [c.foto] : []);
@@ -76,7 +67,7 @@ function renderVeiculo(root, c) {
         <div class="spec"><div class="spec-label">Combustível</div><div class="spec-value">${c.combustivel || '—'}</div></div>
         <div class="spec"><div class="spec-label">Marca</div><div class="spec-value">${c.marca || '—'}</div></div>
       </div>
-      ${c.desc ? `<div class="desc-text">${c.desc}</div>` : ''}
+      ${c.descricao ? `<div class="desc-text">${c.descricao}</div>` : ''}
       <a class="btn-wa" href="https://api.whatsapp.com/send/?phone=${WHATSAPP}&text=${waMsg}&type=phone_number&app_absent=0" target="_blank">
         ${waIcon()} Falar no WhatsApp
       </a>
@@ -90,9 +81,6 @@ function renderVeiculo(root, c) {
   initGallery(fotos);
 }
 
-// ══════════════════════════════════════════════════════
-// RENDER IMÓVEL
-// ══════════════════════════════════════════════════════
 function renderImovel(root, im) {
   const WHATSAPP = "5547999064574";
   const fotos = (im.fotos && im.fotos.length) ? im.fotos : (im.foto ? [im.foto] : []);
@@ -125,7 +113,7 @@ function renderImovel(root, im) {
         <div class="spec"><div class="spec-label">Vagas</div><div class="spec-value">${im.vagas || '—'}</div></div>
         <div class="spec"><div class="spec-label">Bairro</div><div class="spec-value">${im.bairro || '—'}</div></div>
       </div>
-      ${im.desc ? `<div class="desc-text">${im.desc}</div>` : ''}
+      ${im.descricao ? `<div class="desc-text">${im.descricao}</div>` : ''}
       <a class="btn-wa" href="https://api.whatsapp.com/send/?phone=${WHATSAPP}&text=${waMsg}&type=phone_number&app_absent=0" target="_blank">
         ${waIcon()} Falar no WhatsApp
       </a>
@@ -139,19 +127,14 @@ function renderImovel(root, im) {
   initGallery(fotos);
 }
 
-// ══════════════════════════════════════════════════════
-// GALERIA
-// ══════════════════════════════════════════════════════
 function buildGalleryHTML(fotos) {
   if (!fotos.length) {
     return `<div class="no-img"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(128,128,128,0.3)" stroke-width="1"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7l-2-4H10L8 7"/></svg></div>`;
   }
-
   const thumbs = fotos.length > 1 ? `
     <div class="thumbnails">
       ${fotos.map((f, i) => `<img class="thumb${i===0?' active':''}" src="${f}" alt="Foto ${i+1}" onclick="setFotoAtiva(${i})" loading="lazy">`).join('')}
     </div>` : '';
-
   return `
     <div class="main-img-wrap">
       <img class="main-img" id="mainImg" src="${fotos[0]}" alt="Foto principal">
@@ -169,15 +152,10 @@ function buildGalleryHTML(fotos) {
 }
 
 function initGallery(fotos) {
-  // Expõe para o HTML inline
   window.galeriaFotos = fotos;
   window.galeriaIdx   = 0;
-  // setFotoAtiva / galeriaPrev / galeriaNext já estão no detalhes.html inline
 }
 
-// ══════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════
 function renderErro(root) {
   root.innerHTML = `
   <div class="error-page">
