@@ -10,7 +10,7 @@ let bloqueadoAte = parseInt(sessionStorage.getItem("loginBloqueadoAte") || "0");
 
 // Redireciona se já autenticado
 if (sessionStorage.getItem("logistAutenticado") === "true") {
-  window.location.href = "logista.html";
+  window.location.href = "/logista/";
 }
 
 const btnEntrar   = document.getElementById("btnEntrar");
@@ -97,7 +97,7 @@ function tentarLogin() {
       sessionStorage.removeItem("loginTentativas");
       sessionStorage.removeItem("loginBloqueadoAte");
       document.getElementById("successOverlay").classList.add("show");
-      setTimeout(() => window.location.href = "logista.html", 1800);
+      setTimeout(() => window.location.href = "/logista/", 1800);
     } else {
       tentativas++;
       sessionStorage.setItem("loginTentativas", tentativas);

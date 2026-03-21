@@ -240,8 +240,8 @@ body::before {
 <body>
 
 <script>
-if (sessionStorage.getItem("logistAutenticado") !== "true") window.location.href = "login.html";
-function logout() { sessionStorage.removeItem("logistAutenticado"); window.location.href = "login.html"; }
+if (sessionStorage.getItem("logistAutenticado") !== "true") window.location.href = "/login/";
+function logout() { sessionStorage.removeItem("logistAutenticado"); window.location.href = "/login/"; }
 function toggleTheme() {
   const html = document.documentElement;
   const novo = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
@@ -368,7 +368,7 @@ function toggleTheme() {
         </div>
 
         <hr class="divider">
-        <div class="section-label">Detalhes</div>
+        <div class="section-label">/detalhes/</div>
         <div class="grid">
           <div class="field"><label for="im_quartos">Quartos</label>
             <select id="im_quartos"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5+</option></select>
@@ -429,7 +429,7 @@ function toggleTheme() {
 
 <!-- Footer -->
 <footer class="site-footer">
-  <a class="footer-shop-btn" href="index.html">
+  <a class="footer-shop-btn" href="/painel/">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
     Ver painel da loja
   </a>

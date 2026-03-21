@@ -1,4 +1,4 @@
-// detalhes.js — carrega veículo ou imóvel pelo localStorage e renderiza a página
+// /detalhes/.js — carrega veículo ou imóvel pelo localStorage e renderiza a página
 
 (async () => {
   if (typeof supabaseClient === 'undefined') { console.error('supabaseClient não carregado'); return; }
@@ -71,7 +71,7 @@ function renderVeiculo(root, c) {
       <a class="btn-wa" href="https://api.whatsapp.com/send/?phone=${WHATSAPP}&text=${waMsg}&type=phone_number&app_absent=0" target="_blank">
         ${waIcon()} Falar no WhatsApp
       </a>
-      <a class="btn-back" href="index.html">
+      <a class="btn-back" href="/painel/">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Ver todos os veículos
       </a>
@@ -117,7 +117,7 @@ function renderImovel(root, im) {
       <a class="btn-wa" href="https://api.whatsapp.com/send/?phone=${WHATSAPP}&text=${waMsg}&type=phone_number&app_absent=0" target="_blank">
         ${waIcon()} Falar no WhatsApp
       </a>
-      <a class="btn-back" href="index.html">
+      <a class="btn-back" href="/painel/">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Ver todos os imóveis
       </a>
@@ -161,7 +161,7 @@ function renderErro(root) {
   <div class="error-page">
     <h2>Item não encontrado</h2>
     <p style="color:var(--muted);margin-bottom:24px">Este item pode não estar mais disponível.</p>
-    <a class="btn-back" href="index.html" style="max-width:200px;display:inline-flex">Ver estoque</a>
+    <a class="btn-back" href="/painel/" style="max-width:200px;display:inline-flex">Ver estoque</a>
   </div>`;
 }
 
