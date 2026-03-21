@@ -285,12 +285,9 @@ function toggleTheme() {
     </button>
   </div>
 
-  <!-- ═══════════════════════════════════════════════ -->
-  <!-- TAB: CADASTRAR                                 -->
-  <!-- ═══════════════════════════════════════════════ -->
+  <!-- TAB: CADASTRAR -->
   <div id="panelCadastrar">
 
-    <!-- Sub-tabs: Veículo | Imóvel -->
     <div class="sub-tabs">
       <button class="sub-tab active" id="subTabVeiculo" onclick="setSubTab('veiculo')">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:5px"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7l-2-4H10L8 7"/></svg>
@@ -302,7 +299,7 @@ function toggleTheme() {
       </button>
     </div>
 
-    <!-- ── Formulário VEÍCULO ── -->
+    <!-- Formulário VEÍCULO -->
     <div id="formVeiculo">
       <div class="card">
         <div class="section-label">Identificação</div>
@@ -356,7 +353,7 @@ function toggleTheme() {
       </div>
     </div>
 
-    <!-- ── Formulário IMÓVEL ── -->
+    <!-- Formulário IMÓVEL -->
     <div id="formImovel" style="display:none">
       <div class="card">
         <div class="section-label">Identificação</div>
@@ -408,12 +405,9 @@ function toggleTheme() {
     </div>
   </div><!-- /panelCadastrar -->
 
-  <!-- ═══════════════════════════════════════════════ -->
-  <!-- TAB: ESTOQUE                                   -->
-  <!-- ═══════════════════════════════════════════════ -->
+  <!-- TAB: ESTOQUE -->
   <div id="panelEstoque" style="display:none">
     <div class="card">
-      <!-- Sub-tabs estoque -->
       <div class="estoque-header">
         <div class="estoque-sub-tabs">
           <button class="sub-tab active" id="estSubVeiculo" onclick="setEstoqueTab('veiculos')">Veículos</button>
@@ -429,7 +423,6 @@ function toggleTheme() {
     </div>
   </div>
 
-  <!-- hidden input para controle de sub-aba do estoque -->
   <input type="hidden" id="estoqueTabAtiva" value="veiculos">
 
 </div><!-- /page -->
@@ -443,7 +436,7 @@ function toggleTheme() {
   <p class="footer-credit">Desenvolvido por <a href="https://www.instagram.com/peneiira/" target="_blank">@peneiira</a> · © 2026 Consultor Yale</p>
 </footer>
 
-<!-- Modal EDITAR (veículo e imóvel) -->
+<!-- Modal EDITAR -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <button class="modal-close" onclick="fecharModal()">
@@ -605,8 +598,8 @@ function mascaraKm(el) {
 }
 
 // ── Upload de fotos ───────────────────────────────────
-// Estado: mapa ctx → array de File
-const fotoFilesMap = {
+// *** CORREÇÃO: usa window.fotoFilesMap para compartilhar com logista.js ***
+window.fotoFilesMap = {
   veiculo: [], imovel: [], modal_veiculo: [], modal_imovel: []
 };
 
@@ -619,7 +612,7 @@ const ctxConfig = {
 
 function onFilesSelected(e, ctx) {
   addFiles(Array.from(e.target.files), ctx);
-  e.target.value = ''; // reset para permitir re-selecionar os mesmos arquivos
+  e.target.value = '';
 }
 function onDragOverUpload(e, areaId) { e.preventDefault(); document.getElementById(areaId).classList.add('dragover'); }
 function onDragLeaveUpload(areaId) { document.getElementById(areaId).classList.remove('dragover'); }
@@ -631,7 +624,7 @@ function onDropUpload(e, ctx) {
 }
 
 function addFiles(files, ctx) {
-  const arr = fotoFilesMap[ctx];
+  const arr = window.fotoFilesMap[ctx];
   for (const f of files) {
     if (arr.length >= 5) break;
     arr.push(f);
@@ -640,18 +633,17 @@ function addFiles(files, ctx) {
 }
 
 function removeFile(ctx, idx) {
-  fotoFilesMap[ctx].splice(idx, 1);
+  window.fotoFilesMap[ctx].splice(idx, 1);
   renderPreviews(ctx);
 }
 
 function renderPreviews(ctx) {
   const cfg = ctxConfig[ctx];
-  const arr = fotoFilesMap[ctx];
+  const arr = window.fotoFilesMap[ctx];
   const previewEl = document.getElementById(cfg.previews);
   const countEl   = document.getElementById(cfg.count);
   if (!previewEl) return;
 
-  // Mostrar previews + slots vazios até 5
   let html = arr.map((f, i) => {
     const url = URL.createObjectURL(f);
     return `
@@ -664,7 +656,6 @@ function renderPreviews(ctx) {
     </div>`;
   }).join('');
 
-  // Slots vazios restantes
   for (let i = arr.length; i < 5; i++) {
     html += `<div class="foto-preview-empty">+</div>`;
   }
@@ -679,7 +670,6 @@ function renderPreviews(ctx) {
   }
 }
 
-// Inicializar previews vazios
 Object.keys(ctxConfig).forEach(ctx => renderPreviews(ctx));
 
 // ── Autocomplete marcas ───────────────────────────────
@@ -770,13 +760,6 @@ document.getElementById("modalOverlay").addEventListener("click",e=>{if(e.target
 document.getElementById("confirmOverlay").addEventListener("click",e=>{if(e.target===e.currentTarget)fecharConfirm();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){fecharModal();fecharConfirm();}});
 
-// Controla qual formulário aparece no modal (veículo ou imóvel)
-const _origAbrirModalVeiculo = window.abrirModalVeiculo;
-const _origAbrirModalImovel  = window.abrirModalImovel;
-
-// Override: mostra seção correta no modal
-const observer = new MutationObserver(() => {});
-// Simplesmente detectamos pelo título do modal
 document.getElementById("modalOverlay").addEventListener("transitionend", () => {
   const titulo = document.getElementById("modalTitulo").textContent;
   document.getElementById("modalVeiculo").style.display = titulo.includes("Veículo") ? "block" : "none";

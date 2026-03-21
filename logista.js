@@ -15,21 +15,59 @@
   let deletandoId   = null;
   let deletandoTipo = null;
 
+  // ── Expõe fotoFilesMap no window para o HTML acessar ──
+  if (!window.fotoFilesMap) {
+    window.fotoFilesMap = {
+      veiculo: [], imovel: [], modal_veiculo: [], modal_imovel: []
+    };
+  }
+
   // ══════════════════════════════════════════════════════
-  // CONVERTER FOTOS PARA BASE64 (sem Storage)
+  // COMPRIMIR E FAZER UPLOAD PARA SUPABASE STORAGE
+  // Reduz para máx 900px e qualidade 65% → ~150-300KB cada
   // ══════════════════════════════════════════════════════
   async function uploadFotos(files) {
-    const base64s = [];
+    const urls = [];
     for (const file of files) {
-      const b64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+      // Comprime a imagem antes de fazer upload
+      const blob = await new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          const MAX = 900;
+          const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width  = Math.round(img.width  * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(url);
+          canvas.toBlob(resolve, 'image/jpeg', 0.65);
+        };
+        img.onerror = reject;
+        img.src = url;
       });
-      base64s.push(b64);
+
+      // Nome único para o arquivo
+      const nomeArquivo = `${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`;
+
+      // Faz upload para o bucket "Fotos"
+      const { error } = await supabaseClient.storage
+        .from('Fotos')
+        .upload(nomeArquivo, blob, { contentType: 'image/jpeg' });
+
+      if (error) {
+        console.error('Erro no upload:', error);
+        throw error;
+      }
+
+      // Pega a URL pública
+      const { data } = supabaseClient.storage
+        .from('Fotos')
+        .getPublicUrl(nomeArquivo);
+
+      urls.push(data.publicUrl);
     }
-    return base64s;
+    return urls;
   }
 
   // ══════════════════════════════════════════════════════
@@ -40,14 +78,17 @@
       .from('cars')
       .select('*')
       .order('id', { ascending: false });
-    if (error) { console.error(error); return; }
+    if (error) { console.error('Erro ao carregar veículos:', error); return; }
     carros = data || [];
     atualizarBadge();
     const sel = document.getElementById('filterMarca');
     if (sel) {
       while (sel.options.length > 1) sel.remove(1);
       const marcas = [...new Set(carros.map(c => c.marca).filter(Boolean))].sort();
-      marcas.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
+      marcas.forEach(m => {
+        const o = document.createElement('option');
+        o.value = m; o.textContent = m; sel.appendChild(o);
+      });
     }
     if (document.getElementById('panelEstoque')?.style.display !== 'none') renderEstoque();
   }
@@ -57,7 +98,7 @@
       .from('imoveis')
       .select('*')
       .order('created_at', { ascending: false });
-    if (error) { console.error(error); return; }
+    if (error) { console.error('Erro ao carregar imóveis:', error); return; }
     imoveis = data || [];
     atualizarBadge();
     if (document.getElementById('panelEstoque')?.style.display !== 'none') renderEstoque();
@@ -71,7 +112,7 @@
   // ══════════════════════════════════════════════════════
   // SALVAR VEÍCULO
   // ══════════════════════════════════════════════════════
-  window.salvar = async function() {
+  window.salvar = async function () {
     const marca  = document.getElementById('marca').value.trim();
     const modelo = document.getElementById('modelo').value.trim();
     if (!marca || !modelo) { showToast('Preencha marca e modelo', true); return; }
@@ -79,7 +120,14 @@
     const files = window.fotoFilesMap?.veiculo || [];
     if (files.length > 0) showToast('Processando fotos…');
 
-    const fotos = await uploadFotos(files);
+    let fotos = [];
+    try {
+      fotos = await uploadFotos(files);
+    } catch (e) {
+      showToast('Erro ao processar fotos', true);
+      console.error(e);
+      return;
+    }
 
     const obj = {
       marca, modelo,
@@ -90,11 +138,16 @@
       cor:         document.getElementById('cor').value.trim() || null,
       preco:       document.getElementById('preco').value.trim() || null,
       km:          document.getElementById('km').value.trim() || null,
-      fotos, foto: fotos[0] || null,
+      fotos,
+      foto: fotos[0] || null,
     };
 
     const { error } = await supabaseClient.from('cars').insert([obj]);
-    if (error) { showToast('Erro ao salvar: ' + error.message, true); return; }
+    if (error) {
+      console.error('Erro ao salvar veículo:', error);
+      showToast('Erro ao salvar: ' + error.message, true);
+      return;
+    }
 
     showToast('Veículo publicado!');
     limparFormVeiculo();
@@ -104,14 +157,21 @@
   // ══════════════════════════════════════════════════════
   // SALVAR IMÓVEL
   // ══════════════════════════════════════════════════════
-  window.salvarImovel = async function() {
+  window.salvarImovel = async function () {
     const titulo = document.getElementById('im_titulo').value.trim();
     if (!titulo) { showToast('Preencha o título do imóvel', true); return; }
 
     const files = window.fotoFilesMap?.imovel || [];
     if (files.length > 0) showToast('Processando fotos…');
 
-    const fotos = await uploadFotos(files);
+    let fotos = [];
+    try {
+      fotos = await uploadFotos(files);
+    } catch (e) {
+      showToast('Erro ao processar fotos', true);
+      console.error(e);
+      return;
+    }
 
     const gIm = id => document.getElementById(id)?.value?.trim() || null;
     const obj = {
@@ -125,11 +185,16 @@
       vagas:     gIm('im_vagas'),
       preco:     gIm('im_preco'),
       descricao: gIm('im_descricao'),
-      fotos, foto: fotos[0] || null,
+      fotos,
+      foto: fotos[0] || null,
     };
 
     const { error } = await supabaseClient.from('imoveis').insert([obj]);
-    if (error) { showToast('Erro ao salvar: ' + error.message, true); return; }
+    if (error) {
+      console.error('Erro ao salvar imóvel:', error);
+      showToast('Erro ao salvar: ' + error.message, true);
+      return;
+    }
 
     showToast('Imóvel publicado!');
     limparFormImovel();
@@ -139,7 +204,7 @@
   // ══════════════════════════════════════════════════════
   // EDITAR — abrir modais
   // ══════════════════════════════════════════════════════
-  window.abrirModalVeiculo = function(id) {
+  window.abrirModalVeiculo = function (id) {
     const c = carros.find(x => String(x.id) === String(id));
     if (!c) return;
     editandoId   = id;
@@ -157,7 +222,7 @@
 
     if (typeof syncColorChip === 'function') syncColorChip('colorGridM', c.cor);
     mostrarFotosExistentes('modal_veiculo', c.fotos || (c.foto ? [c.foto] : []));
-    if (window.fotoFilesMap) window.fotoFilesMap.modal_veiculo = [];
+    window.fotoFilesMap.modal_veiculo = [];
 
     document.getElementById('modalVeiculo').style.display = 'block';
     document.getElementById('modalImovel').style.display  = 'none';
@@ -166,13 +231,13 @@
     document.body.style.overflow = 'hidden';
   };
 
-  window.abrirModalImovel = function(id) {
+  window.abrirModalImovel = function (id) {
     const im = imoveis.find(x => String(x.id) === String(id));
     if (!im) return;
     editandoId   = id;
     editandoTipo = 'imovel';
 
-    const s = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    const s = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
     s('eImTitulo',    im.titulo);
     s('eImTipo',      im.tipo);
     s('eImBairro',    im.bairro);
@@ -185,7 +250,7 @@
     s('eImdescricao', im.descricao);
 
     mostrarFotosExistentes('modal_imovel', im.fotos || (im.foto ? [im.foto] : []));
-    if (window.fotoFilesMap) window.fotoFilesMap.modal_imovel = [];
+    window.fotoFilesMap.modal_imovel = [];
 
     document.getElementById('modalVeiculo').style.display = 'none';
     document.getElementById('modalImovel').style.display  = 'block';
@@ -208,10 +273,12 @@
 
     let html = fotosExistentes.map((url, i) => `
       <div class="foto-preview-item">
-        <img src="${url}" alt="Foto ${i+1}">
+        <img src="${url}" alt="Foto ${i + 1}">
         ${i === 0 ? '<div class="foto-badge">Capa</div>' : ''}
       </div>`).join('');
-    for (let i = fotosExistentes.length; i < 5; i++) html += `<div class="foto-preview-empty">+</div>`;
+    for (let i = fotosExistentes.length; i < 5; i++) {
+      html += `<div class="foto-preview-empty">+</div>`;
+    }
     el.innerHTML = html;
     el.style.display = 'grid';
 
@@ -225,7 +292,7 @@
   // ══════════════════════════════════════════════════════
   // SALVAR EDIÇÃO
   // ══════════════════════════════════════════════════════
-  window.salvarEdicao = async function() {
+  window.salvarEdicao = async function () {
     if (!editandoId) return;
     if (editandoTipo === 'veiculo') await salvarEdicaoVeiculo();
     else await salvarEdicaoImovel();
@@ -236,7 +303,13 @@
     let fotos;
     if (newFiles.length > 0) {
       showToast('Processando fotos…');
-      fotos = await uploadFotos(newFiles);
+      try {
+        fotos = await uploadFotos(newFiles);
+      } catch (e) {
+        showToast('Erro ao processar fotos', true);
+        console.error(e);
+        return;
+      }
     } else {
       fotos = window._fotosExistentes_modal_veiculo || [];
     }
@@ -251,11 +324,16 @@
       cor:         document.getElementById('eCor').value.trim() || null,
       preco:       document.getElementById('ePreco').value.trim() || null,
       km:          document.getElementById('eKm').value.trim() || null,
-      fotos, foto: fotos[0] || null,
+      fotos,
+      foto: fotos[0] || null,
     };
 
     const { error } = await supabaseClient.from('cars').update(obj).eq('id', editandoId);
-    if (error) { showToast('Erro: ' + error.message, true); return; }
+    if (error) {
+      console.error('Erro ao atualizar veículo:', error);
+      showToast('Erro: ' + error.message, true);
+      return;
+    }
     showToast('Veículo atualizado!');
     fecharModal();
     await carregarCarros();
@@ -266,7 +344,13 @@
     let fotos;
     if (newFiles.length > 0) {
       showToast('Processando fotos…');
-      fotos = await uploadFotos(newFiles);
+      try {
+        fotos = await uploadFotos(newFiles);
+      } catch (e) {
+        showToast('Erro ao processar fotos', true);
+        console.error(e);
+        return;
+      }
     } else {
       fotos = window._fotosExistentes_modal_imovel || [];
     }
@@ -283,11 +367,16 @@
       vagas:     gEIm('eImVagas'),
       preco:     gEIm('eImPreco'),
       descricao: gEIm('eImdescricao'),
-      fotos, foto: fotos[0] || null,
+      fotos,
+      foto: fotos[0] || null,
     };
 
     const { error } = await supabaseClient.from('imoveis').update(obj).eq('id', editandoId);
-    if (error) { showToast('Erro: ' + error.message, true); return; }
+    if (error) {
+      console.error('Erro ao atualizar imóvel:', error);
+      showToast('Erro: ' + error.message, true);
+      return;
+    }
     showToast('Imóvel atualizado!');
     fecharModal();
     await carregarImoveis();
@@ -296,7 +385,7 @@
   // ══════════════════════════════════════════════════════
   // EXCLUIR
   // ══════════════════════════════════════════════════════
-  window.pedirExclusao = function(id, tipo, nome) {
+  window.pedirExclusao = function (id, tipo, nome) {
     deletandoId   = id;
     deletandoTipo = tipo;
     const desc = document.getElementById('confirmDesc');
@@ -305,10 +394,14 @@
     document.body.style.overflow = 'hidden';
   };
 
-  window.confirmarExclusao = async function() {
+  window.confirmarExclusao = async function () {
     const tabela = deletandoTipo === 'imovel' ? 'imoveis' : 'cars';
     const { error } = await supabaseClient.from(tabela).delete().eq('id', deletandoId);
-    if (error) { showToast('Erro: ' + error.message, true); return; }
+    if (error) {
+      console.error('Erro ao excluir:', error);
+      showToast('Erro: ' + error.message, true);
+      return;
+    }
     showToast('Item excluído.');
     fecharConfirm();
     if (deletandoTipo === 'imovel') await carregarImoveis();
@@ -318,7 +411,7 @@
   // ══════════════════════════════════════════════════════
   // ESTOQUE — RENDERIZAR
   // ══════════════════════════════════════════════════════
-  window.renderEstoque = function() {
+  window.renderEstoque = function () {
     const tab = document.getElementById('estoqueTabAtiva')?.value || 'veiculos';
     if (tab === 'imoveis') renderEstoqueImoveis();
     else renderEstoqueCarros();
@@ -338,13 +431,23 @@
     el.innerHTML = lista.map(c => {
       const thumb = c.fotos?.[0] || c.foto || '';
       return `<div class="car-row">
-        ${thumb ? `<img class="car-thumb" src="${thumb}" loading="lazy">` : `<div class="car-thumb-ph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7l-2-4H10L8 7"/></svg></div>`}
-        <div class="car-info"><div class="car-name">${c.marca} ${c.modelo}</div><div class="car-meta">${c.ano||''}${c.km?' · '+c.km:''}${c.cor?' · '+c.cor:''}</div></div>
-        <div class="car-price-tag">${c.preco||'—'}</div>
+        ${thumb
+          ? `<img class="car-thumb" src="${thumb}" loading="lazy">`
+          : `<div class="car-thumb-ph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7l-2-4H10L8 7"/></svg></div>`}
+        <div class="car-info">
+          <div class="car-name">${c.marca} ${c.modelo}</div>
+          <div class="car-meta">${c.ano || ''}${c.km ? ' · ' + c.km : ''}${c.cor ? ' · ' + c.cor : ''}</div>
+        </div>
+        <div class="car-price-tag">${c.preco || '—'}</div>
         <div class="car-actions">
-          <button class="icon-btn edit" onclick="abrirModalVeiculo('${c.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button class="icon-btn del" onclick="pedirExclusao('${c.id}','veiculo','${c.marca} ${c.modelo}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
-        </div></div>`;
+          <button class="icon-btn edit" onclick="abrirModalVeiculo('${c.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="icon-btn del" onclick="pedirExclusao('${c.id}','veiculo','${c.marca} ${c.modelo}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </button>
+        </div>
+      </div>`;
     }).join('');
   }
 
@@ -362,26 +465,42 @@
     el.innerHTML = lista.map(im => {
       const thumb = im.fotos?.[0] || im.foto || '';
       return `<div class="car-row">
-        ${thumb ? `<img class="car-thumb" src="${thumb}" loading="lazy">` : `<div class="car-thumb-ph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>`}
-        <div class="car-info"><div class="car-name">${im.titulo}</div><div class="car-meta">${im.tipo||''}${im.bairro?' · '+im.bairro:''}${im.cidade?' · '+im.cidade:''}</div></div>
-        <div class="car-price-tag">${im.preco||'—'}</div>
+        ${thumb
+          ? `<img class="car-thumb" src="${thumb}" loading="lazy">`
+          : `<div class="car-thumb-ph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>`}
+        <div class="car-info">
+          <div class="car-name">${im.titulo}</div>
+          <div class="car-meta">${im.tipo || ''}${im.bairro ? ' · ' + im.bairro : ''}${im.cidade ? ' · ' + im.cidade : ''}</div>
+        </div>
+        <div class="car-price-tag">${im.preco || '—'}</div>
         <div class="car-actions">
-          <button class="icon-btn edit" onclick="abrirModalImovel('${im.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button class="icon-btn del" onclick="pedirExclusao('${im.id}','imovel','${im.titulo}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
-        </div></div>`;
+          <button class="icon-btn edit" onclick="abrirModalImovel('${im.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="icon-btn del" onclick="pedirExclusao('${im.id}','imovel','${im.titulo}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </button>
+        </div>
+      </div>`;
     }).join('');
   }
 
   // ── Limpar forms ──────────────────────────────────────
   function limparFormVeiculo() {
-    ['marca','modelo','ano','cor','preco','km'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    ['marca', 'modelo', 'ano', 'cor', 'preco', 'km'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
     document.querySelectorAll('#colorGrid .color-chip').forEach(x => x.classList.remove('selected'));
-    if (window.fotoFilesMap) { window.fotoFilesMap.veiculo = []; if (typeof renderPreviews === 'function') renderPreviews('veiculo'); }
+    window.fotoFilesMap.veiculo = [];
+    if (typeof renderPreviews === 'function') renderPreviews('veiculo');
   }
 
   function limparFormImovel() {
-    ['im_titulo','im_bairro','im_cidade','im_area','im_vagas','im_preco','im_descricao'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
-    if (window.fotoFilesMap) { window.fotoFilesMap.imovel = []; if (typeof renderPreviews === 'function') renderPreviews('imovel'); }
+    ['im_titulo', 'im_bairro', 'im_cidade', 'im_area', 'im_vagas', 'im_preco', 'im_descricao'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    window.fotoFilesMap.imovel = [];
+    if (typeof renderPreviews === 'function') renderPreviews('imovel');
   }
 
   // ── Init ──────────────────────────────────────────────
