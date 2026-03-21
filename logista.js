@@ -7,8 +7,6 @@
     return;
   }
 
-  const BUCKET = 'fotos'; // nome do bucket no Supabase Storage
-
   // ── Estado ────────────────────────────────────────────
   let carros   = [];
   let imoveis  = [];
@@ -18,29 +16,20 @@
   let deletandoTipo = null;
 
   // ══════════════════════════════════════════════════════
-  // UPLOAD DE FOTOS PARA STORAGE
+  // CONVERTER FOTOS PARA BASE64 (sem Storage)
   // ══════════════════════════════════════════════════════
   async function uploadFotos(files) {
-    const urls = [];
+    const base64s = [];
     for (const file of files) {
-      const ext  = file.name.split('.').pop().toLowerCase();
-      const nome = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-      const path = `uploads/${nome}`;
-
-      const { error: upErr } = await supabaseClient.storage
-        .from(BUCKET)
-        .upload(path, file, { upsert: false });
-
-      if (upErr) {
-        console.error('Erro upload:', upErr);
-        showToast(`Erro ao enviar: ${file.name}`, true);
-        continue;
-      }
-
-      const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
-      if (data?.publicUrl) urls.push(data.publicUrl);
+      const b64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      base64s.push(b64);
     }
-    return urls;
+    return base64s;
   }
 
   // ══════════════════════════════════════════════════════
@@ -54,7 +43,6 @@
     if (error) { console.error(error); return; }
     carros = data || [];
     atualizarBadge();
-    // Popula filtro de marcas na home (só existe no index.html, ignora se não existir)
     const sel = document.getElementById('filterMarca');
     if (sel) {
       while (sel.options.length > 1) sel.remove(1);
@@ -72,7 +60,7 @@
     if (error) { console.error(error); return; }
     imoveis = data || [];
     atualizarBadge();
-    if (document.getElementById('panelEstoque').style.display !== 'none') renderEstoque();
+    if (document.getElementById('panelEstoque')?.style.display !== 'none') renderEstoque();
   }
 
   function atualizarBadge() {
@@ -89,13 +77,12 @@
     if (!marca || !modelo) { showToast('Preencha marca e modelo', true); return; }
 
     const files = window.fotoFilesMap?.veiculo || [];
-    if (files.length > 0) showToast('Enviando fotos…');
+    if (files.length > 0) showToast('Processando fotos…');
 
     const fotos = await uploadFotos(files);
 
     const obj = {
-      marca,
-      modelo,
+      marca, modelo,
       ano:         document.getElementById('ano').value.trim() || null,
       combustivel: document.getElementById('combustivel').value,
       cambio:      document.getElementById('cambio').value,
@@ -103,8 +90,7 @@
       cor:         document.getElementById('cor').value.trim() || null,
       preco:       document.getElementById('preco').value.trim() || null,
       km:          document.getElementById('km').value.trim() || null,
-      fotos,
-      foto: fotos[0] || null,
+      fotos, foto: fotos[0] || null,
     };
 
     const { error } = await supabaseClient.from('cars').insert([obj]);
@@ -123,7 +109,7 @@
     if (!titulo) { showToast('Preencha o título do imóvel', true); return; }
 
     const files = window.fotoFilesMap?.imovel || [];
-    if (files.length > 0) showToast('Enviando fotos…');
+    if (files.length > 0) showToast('Processando fotos…');
 
     const fotos = await uploadFotos(files);
 
@@ -139,8 +125,7 @@
       vagas:     gIm('im_vagas'),
       preco:     gIm('im_preco'),
       descricao: gIm('im_descricao'),
-      fotos,
-      foto: fotos[0] || null,
+      fotos, foto: fotos[0] || null,
     };
 
     const { error } = await supabaseClient.from('imoveis').insert([obj]);
@@ -171,7 +156,6 @@
     document.getElementById('eKm').value          = c.km || '';
 
     if (typeof syncColorChip === 'function') syncColorChip('colorGridM', c.cor);
-
     mostrarFotosExistentes('modal_veiculo', c.fotos || (c.foto ? [c.foto] : []));
     if (window.fotoFilesMap) window.fotoFilesMap.modal_veiculo = [];
 
@@ -188,16 +172,17 @@
     editandoId   = id;
     editandoTipo = 'imovel';
 
-    document.getElementById('eImTitulo').value    = im.titulo || '';
-    document.getElementById('eImTipo').value      = im.tipo || '';
-    document.getElementById('eImBairro').value    = im.bairro || '';
-    document.getElementById('eImCidade').value    = im.cidade || '';
-    document.getElementById('eImArea').value      = im.area || '';
-    document.getElementById('eImQuartos').value   = im.quartos || '';
-    document.getElementById('eImBanheiros').value = im.banheiros || '';
-    document.getElementById('eImVagas').value     = im.vagas || '';
-    document.getElementById('eImPreco').value     = im.preco || '';
-    document.getElementById('eImdescricao').value = im.descricao || '';
+    const s = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    s('eImTitulo',    im.titulo);
+    s('eImTipo',      im.tipo);
+    s('eImBairro',    im.bairro);
+    s('eImCidade',    im.cidade);
+    s('eImArea',      im.area);
+    s('eImQuartos',   im.quartos);
+    s('eImBanheiros', im.banheiros);
+    s('eImVagas',     im.vagas);
+    s('eImPreco',     im.preco);
+    s('eImdescricao', im.descricao);
 
     mostrarFotosExistentes('modal_imovel', im.fotos || (im.foto ? [im.foto] : []));
     if (window.fotoFilesMap) window.fotoFilesMap.modal_imovel = [];
@@ -250,7 +235,7 @@
     const newFiles = window.fotoFilesMap?.modal_veiculo || [];
     let fotos;
     if (newFiles.length > 0) {
-      showToast('Enviando novas fotos…');
+      showToast('Processando fotos…');
       fotos = await uploadFotos(newFiles);
     } else {
       fotos = window._fotosExistentes_modal_veiculo || [];
@@ -280,7 +265,7 @@
     const newFiles = window.fotoFilesMap?.modal_imovel || [];
     let fotos;
     if (newFiles.length > 0) {
-      showToast('Enviando novas fotos…');
+      showToast('Processando fotos…');
       fotos = await uploadFotos(newFiles);
     } else {
       fotos = window._fotosExistentes_modal_imovel || [];
@@ -314,7 +299,7 @@
   window.pedirExclusao = function(id, tipo, nome) {
     deletandoId   = id;
     deletandoTipo = tipo;
-    const desc = document.getElementById('confirmdescricao');
+    const desc = document.getElementById('confirmDesc');
     if (desc) desc.textContent = `Excluir "${nome}"? Esta ação não pode ser desfeita.`;
     document.getElementById('confirmOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
