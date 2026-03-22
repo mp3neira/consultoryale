@@ -1,9 +1,7 @@
-// /detalhes.js — carrega veículo ou imóvel pelo localStorage e renderiza a página
+// /detalhes/detalhes.js — carrega veículo ou imóvel pelo localStorage e renderiza a página
 
 (async () => {
   if (typeof supabaseClient === 'undefined') { console.error('supabaseClient não carregado'); return; }
-
-  const WHATSAPP = "5547999064574";
 
   let tipo = 'veiculo';
   let itemId = null;
@@ -40,7 +38,7 @@
 function formatarPreco(valor) {
   if (!valor && valor !== 0) return 'Consulte';
   const num = Number(valor);
-  if (isNaN(num)) return valor; // já é string formatada
+  if (isNaN(num)) return valor;
   return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 });
 }
 
@@ -49,6 +47,17 @@ function formatarKm(valor) {
   const num = Number(valor);
   if (isNaN(num)) return valor;
   return num.toLocaleString('pt-BR') + ' km';
+}
+
+// ── URL de volta ──────────────────────────────────────
+// Usa history.back() se tiver histórico, senão vai pra raiz
+function voltarPagina(e) {
+  e.preventDefault();
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.location.href = '/';
+  }
 }
 
 // ── Renderização Veículo ──────────────────────────────
@@ -87,7 +96,7 @@ function renderVeiculo(root, c) {
       <a class="btn-wa" href="https://api.whatsapp.com/send/?phone=${WHATSAPP}&text=${waMsg}&type=phone_number&app_absent=0" target="_blank">
         ${waIcon()} Falar no WhatsApp
       </a>
-      <a class="btn-back" href="/painel/">
+      <a class="btn-back" href="/" onclick="voltarPagina(event)">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Ver todos os veículos
       </a>
@@ -134,7 +143,7 @@ function renderImovel(root, im) {
       <a class="btn-wa" href="https://api.whatsapp.com/send/?phone=${WHATSAPP}&text=${waMsg}&type=phone_number&app_absent=0" target="_blank">
         ${waIcon()} Falar no WhatsApp
       </a>
-      <a class="btn-back" href="/painel/">
+      <a class="btn-back" href="/" onclick="voltarPagina(event)">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Ver todos os imóveis
       </a>
@@ -169,16 +178,18 @@ function buildGalleryHTML(fotos) {
     ${thumbs}`;
 }
 
+// ── initGallery: popula window.galeriaFotos com cópia defensiva ──
 function initGallery(fotos) {
-  // Sincroniza com as funções globais definidas no detalhes.html
-  window.galeriaFotos = fotos;
+  window.galeriaFotos = fotos.slice(); // cópia do array — evita referência vazia
   window.galeriaIdx   = 0;
-  // Garante estado inicial correto dos botões
+
   if (fotos.length > 1) {
-    const prev = document.getElementById('galleryPrev');
-    const next = document.getElementById('galleryNext');
-    if (prev) prev.classList.add('hidden');
-    if (next) next.classList.remove('hidden');
+    const prev  = document.getElementById('galleryPrev');
+    const next  = document.getElementById('galleryNext');
+    const count = document.getElementById('photoCount');
+    if (prev)  prev.classList.add('hidden');
+    if (next)  next.classList.remove('hidden');
+    if (count) count.textContent = `1 / ${fotos.length}`;
   }
 }
 
@@ -188,7 +199,7 @@ function renderErro(root) {
   <div class="error-page">
     <h2>Item não encontrado</h2>
     <p style="color:var(--muted);margin-bottom:24px">Este item pode não estar mais disponível.</p>
-    <a class="btn-back" href="/painel/" style="max-width:200px;display:inline-flex">Ver estoque</a>
+    <a class="btn-back" href="/" onclick="voltarPagina(event)" style="max-width:200px;display:inline-flex">Ver estoque</a>
   </div>`;
 }
 
