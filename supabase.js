@@ -37,6 +37,7 @@ async function carregarImoveis() {
     return;
   }
   imoveis = data || [];
+  if (typeof filtrarImoveis === 'function') filtrarImoveis();
 }
 
 // ⚠️ NÃO chamar carregarCars/carregarImoveis aqui.
