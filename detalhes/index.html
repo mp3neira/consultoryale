@@ -204,10 +204,11 @@ nav {
 <body>
 
 <nav>
-  <a class="nav-back" href="/detalhes.js" title="Voltar">
+  <!-- ✅ CORRIGIDO: links apontam para /painel/ em vez de /detalhes.js -->
+  <a class="nav-back" href="/painel/" title="Voltar">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   </a>
-  <a class="nav-brand" href="/detalhes.js">Consultor <span>Yale</span></a>
+  <a class="nav-brand" href="/painel/">Consultor <span>Yale</span></a>
   <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
     <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
     <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -235,11 +236,11 @@ let galeriaIdx = 0;
 
 function setFotoAtiva(idx) {
   galeriaIdx = idx;
-  const img = document.getElementById('mainImg');
+  const img   = document.getElementById('mainImg');
   const count = document.getElementById('photoCount');
-  const prev = document.getElementById('galleryPrev');
-  const next = document.getElementById('galleryNext');
-  if (img) img.src = galeriaFotos[idx];
+  const prev  = document.getElementById('galleryPrev');
+  const next  = document.getElementById('galleryNext');
+  if (img)   img.src = galeriaFotos[idx];
   if (count) count.textContent = `${idx + 1} / ${galeriaFotos.length}`;
   document.querySelectorAll('.thumb').forEach((t, i) => t.classList.toggle('active', i === idx));
   if (prev) prev.classList.toggle('hidden', idx === 0);
@@ -250,7 +251,7 @@ function galeriaPrev() { if (galeriaIdx > 0) setFotoAtiva(galeriaIdx - 1); }
 function galeriaNext() { if (galeriaIdx < galeriaFotos.length - 1) setFotoAtiva(galeriaIdx + 1); }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft') galeriaPrev();
+  if (e.key === 'ArrowLeft')  galeriaPrev();
   if (e.key === 'ArrowRight') galeriaNext();
 });
 </script>
