@@ -8,14 +8,11 @@ async function carregarCars() {
     .from("cars")
     .select("*")
     .order("id", { ascending: false });
-
   if (error) {
     console.error("Erro ao carregar veículos:", error);
     return;
   }
-
   carros = data || [];
-
   const sel = document.getElementById("filterMarca");
   if (sel) {
     while (sel.options.length > 1) sel.remove(1);
@@ -27,7 +24,6 @@ async function carregarCars() {
       sel.appendChild(o);
     });
   }
-
   if (typeof filtrar === 'function') filtrar();
 }
 
@@ -36,14 +32,12 @@ async function carregarImoveis() {
     .from("imoveis")
     .select("*")
     .order("created_at", { ascending: false });
-
   if (error) {
     console.error("Erro ao carregar imóveis:", error);
     return;
   }
-
   imoveis = data || [];
 }
 
-carregarCars();
-carregarImoveis();
+// ⚠️ NÃO chamar carregarCars/carregarImoveis aqui.
+// Cada página chama o que precisa no seu próprio .js.
